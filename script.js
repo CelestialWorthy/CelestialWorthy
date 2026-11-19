@@ -427,21 +427,21 @@ document.querySelectorAll(".bottom-item").forEach((link) => {
 });
 
 async function syncFromRemoteGitHub() {
-  if (!window.AlcrazhyGitHub) return;
+  if (!window.AlcrazhyGitHub || typeof window.AlcrazhyGitHub.syncFromGitHub !== "function") {
+    applyProfileVisuals();
+    return;
+  }
   try {
-    if (typeof window.AlcrazhyGitHub.syncFromGitHub === "function") {
-      const remote = await window.AlcrazhyGitHub.syncFromGitHub();
-      if (remote && typeof remote === "object") {
-        const cur = JSON.parse(localStorage.getItem("alcrazhyCommunity") || "{}");
-        localStorage.setItem("alcrazhyCommunity", JSON.stringify({ ...cur, ...remote }));
-      }
+    const remote = await window.AlcrazhyGitHub.syncFromGitHub();
+    if (remote && remote.community && typeof remote.community === "object") {
+      const cur = JSON.parse(localStorage.getItem("alcrazhyCommunity") || "{}");
+      const merged = { ...cur, ...remote.community };
+      localStorage.setItem("alcrazhyCommunity", JSON.stringify(merged));
+      Object.assign(data, merged);
     }
-    if (typeof window.AlcrazhyGitHub.loadProfileData === "function") {
-      const prof = await window.AlcrazhyGitHub.loadProfileData();
-      if (prof && typeof prof === "object") {
-        const curProf = getUserProfile();
-        localStorage.setItem(USER_PROFILE_KEY, JSON.stringify({ ...curProf, ...prof }));
-      }
+    if (remote && remote.profile && typeof remote.profile === "object") {
+      const curProf = getUserProfile();
+      localStorage.setItem(USER_PROFILE_KEY, JSON.stringify({ ...curProf, ...remote.profile }));
     }
   } catch (e) {
     console.warn("Sinkronisasi GitHub gagal:", e);
@@ -456,6 +456,7 @@ async function syncFromRemoteGitHub() {
   renderContentList();
   renderMediaGallery();
 }
+
 
 window.addEventListener("storage", (e) => {
   if (e.key === "alcrazhyCommunity" || e.key === USER_PROFILE_KEY) {
