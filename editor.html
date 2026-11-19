@@ -6,16 +6,13 @@
 <meta name="theme-color" content="#0b0d12">
 <title>Studio Editor - Alcrazhy</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="editor.css?v=4">
+<link rel="stylesheet" href="editor.css?v=5">
 </head>
 <body>
 <header class="top">
   <a href="index.html" class="ib">←</a>
-  <div class="seg">
-    <button id="mK" class="on" onclick="setMode('kartu')">Kartu</button>
-    <button id="mH" onclick="setMode('halaman')">Halaman Utama</button>
-  </div>
-  <button class="save" onclick="saveProject()">Simpan</button>
+  <div class="ttl">Editor Halaman Utama</div>
+  <button type="button" class="save" onclick="saveProject()">Simpan</button>
 </header>
 
 <section class="edit-panel">
@@ -32,55 +29,36 @@
 </section>
 
 <main class="viewport">
-  <div class="stage" id="stage">
-    <div class="card lyr" id="profile" data-id="profile">
-      <div class="banner" id="pBanner"></div>
-      <div class="pmain">
-        <img id="pAvatar" alt="">
-        <h2 id="pName"></h2>
-        <p id="pHandle"></p>
-        <p id="pBio" class="bio"></p>
-      </div>
-    </div>
-  </div>
-  <div class="stage pg" id="pstage" style="display:none">
-    <div id="fw"><iframe id="frame" src="index.html?v=4"></iframe></div>
+  <div class="stage pg" id="pstage">
+    <div id="fw"><iframe id="frame" src="index.html?v=5"></iframe></div>
   </div>
 </main>
 
-<div class="play">
-  <button class="pbtn" id="playBtn" onclick="togglePlay()">▶</button>
-  <span class="time"><b id="tNow">0:00.0</b> / <span id="tTot">0:10.0</span></span>
-  <span class="cnt" id="cnt"></span>
-</div>
+<div class="chips" id="chips"></div>
 
-<div class="chips" id="chips" style="display:none"></div>
 <section class="tl" id="tl">
   <div class="tlin" id="tlin">
-    <div class="ruler" id="ruler"></div>
     <div class="tracks" id="tracks"></div>
-    <div class="head" id="head"></div>
   </div>
 </section>
 
 <nav class="tools" id="tools">
-  <button onclick="sheet('move')"><i>✥</i>Move &amp; Transform</button>
-  <button onclick="sheet('fill')"><i>💧</i>Color &amp; Fill</button>
-  <button onclick="sheet('border')"><i>▢</i>Border &amp; Bayangan</button>
-  <button onclick="sheet('blend')"><i>▧</i>Blending &amp; Opacity</button>
-  <button onclick="sheet('edit')"><i>✏️</i>Edit Konten</button>
-  <button id="bDup" onclick="dupLayer()"><i>⧉</i>Duplikat</button>
-  <button id="bDel" class="del" onclick="delLayer()"><i>🗑</i>Hapus</button>
+  <button type="button" onclick="sheet('move')"><i>✥</i>Move &amp; Transform</button>
+  <button type="button" onclick="sheet('fill')"><i>💧</i>Color &amp; Fill</button>
+  <button type="button" onclick="sheet('border')"><i>▢</i>Border &amp; Bayangan</button>
+  <button type="button" onclick="sheet('blend')"><i>▧</i>Blending &amp; Opacity</button>
+  <button type="button" onclick="sheet('edit')"><i>✏️</i>Edit Konten</button>
+  <button type="button" id="bDup" onclick="resetSelectedUI()"><i>↺</i>Reset</button>
+  <button type="button" id="bDel" class="del" onclick="toggleHideUI()"><i>🚫</i>Sembunyikan</button>
 </nav>
 
-<button class="fab" onclick="sheet('add')">＋</button>
 <div class="sheet" id="sheet"></div>
 <input type="file" id="file" accept="image/*" hidden>
 
-<script src="github_storage.js?v=4"></script>
-<script type="module" src="firebase-auth.js?v=4"></script>
-<script src="tampilan.js?v=4"></script>
-<script src="editor.js?v=4"></script>
+<script src="github_storage.js?v=5"></script>
+<script type="module" src="firebase-auth.js?v=5"></script>
+<script src="tampilan.js?v=5"></script>
+<script src="editor.js?v=5"></script>
 <script>
   window.addEventListener("DOMContentLoaded", async () => {
     document.body.style.visibility = "hidden";
