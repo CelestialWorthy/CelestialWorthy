@@ -1,0 +1,52 @@
+{
+  "profileFx": {
+    "x": 0,
+    "y": 0,
+    "w": 0,
+    "h": 0,
+    "scale": 100,
+    "rot": 0,
+    "skew": 0,
+    "opacity": 100,
+    "blend": "normal",
+    "bw": 0,
+    "bc": "#ffffff",
+    "sh": 0,
+    "start": 0,
+    "dur": 10
+  },
+  "layers": [],
+  "ui": {},
+  "contents": [
+    {
+      "id": 1795081707878,
+      "target": "konten",
+      "title": "P",
+      "category": "Umum",
+      "desc": "Konten visual",
+      "media": "",
+      "cw": 360,
+      "ch": 420,
+      "bg": "#0d0f14",
+      "blocks": [],
+      "files": [],
+      "folders": []
+    },
+    {
+      "id": 1,
+      "title": "Pengumuman Resmi #1",
+      "category": "Pengumuman",
+      "desc": "Selamat datang di ruang komunitas kita. Silakan buat konten baru dan jelajahi galeri!",
+      "media": ""
+    },
+    {
+      "id": 2,
+      "title": "Panduan Komunitas",
+      "category": "Panduan",
+      "desc": "Aturan dasar dan tata cara berdiskusi yang sehat di Alcrazhy Community.",
+      "media": ""
+    }
+  ],
+  "announcements": [],
+  "folders": []
+}
