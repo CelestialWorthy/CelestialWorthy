@@ -16,81 +16,23 @@ const defaults = {
     { id: 4, text: "✧", bg: "linear-gradient(140deg,#9a7650,#292039)" }
   ]
 };
+
 const USER_PROFILE_KEY = "alcrazhyUserProfile";
-const DEFAULT_MAIN_AVATAR = "https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=300&h=300&fit=crop";
-
-function getUserProfileData() {
-  try {
-    return JSON.parse(localStorage.getItem(USER_PROFILE_KEY) || "{}") || {};
-  } catch (e) {
-    return {};
-  }
-}
-
-function applyMainAvatarAndBanner() {
-  const userProf = getUserProfileData();
-  const avatarSrc = userProf.avatar || data.avatar || DEFAULT_MAIN_AVATAR;
-  const bannerSrc = userProf.banner || data.banner || "";
-
-  const avatarEl = document.getElementById("avatarImage");
-  const navAvatarEl = document.getElementById("navProfileAvatar");
-  const coverEl = document.getElementById("coverImage");
-
-  if (avatarEl) avatarEl.src = avatarSrc;
-  if (navAvatarEl) navAvatarEl.src = avatarSrc;
-
-  if (coverEl) {
-    if (bannerSrc) {
-      const safeBanner = String(bannerSrc).replace(/"/g, "&quot;");
-      coverEl.style.backgroundImage = `url("${safeBanner}")`;
-      coverEl.style.backgroundSize = "cover";
-      coverEl.style.backgroundPosition = "center";
-    } else {
-      coverEl.style.backgroundImage = "";
-    }
-  }
-}
-
-async function syncMainVisualsFromGitHub() {
-  if (!window.AlcrazhyGitHub) return;
-  try {
-    if (typeof window.AlcrazhyGitHub.syncFromGitHub === "function") {
-      const comm = await window.AlcrazhyGitHub.syncFromGitHub();
-      if (comm && typeof comm === "object") {
-        Object.assign(data, comm);
-        const curComm = JSON.parse(localStorage.getItem("alcrazhyCommunity") || "{}");
-        localStorage.setItem("alcrazhyCommunity", JSON.stringify({ ...curComm, ...comm }));
-      }
-    }
-    if (typeof window.AlcrazhyGitHub.getProfileData === "function") {
-      const prof = await window.AlcrazhyGitHub.getProfileData();
-      if (prof && typeof prof === "object") {
-        const curProf = getUserProfileData();
-        localStorage.setItem(USER_PROFILE_KEY, JSON.stringify({ ...curProf, ...prof }));
-      }
-    }
-  } catch (e) {
-    console.warn("Gagal sinkronisasi data dari GitHub:", e);
-  }
-  applyMainAvatarAndBanner();
-}
-
-applyMainAvatarAndBanner();
-window.addEventListener("DOMContentLoaded", () => {
-  applyMainAvatarAndBanner();
-  syncMainVisualsFromGitHub();
-});
-window.addEventListener("storage", (e) => {
-  if (e.key === USER_PROFILE_KEY || e.key === "alcrazhyCommunity") {
-    applyMainAvatarAndBanner();
-  }
-});
+const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=300&h=300&fit=crop";
 
 function getCommunity() {
   try {
     return { ...defaults, ...JSON.parse(localStorage.getItem("alcrazhyCommunity") || "{}") };
   } catch (e) {
-    return defaults;
+    return { ...defaults };
+  }
+}
+
+function getUserProfile() {
+  try {
+    return JSON.parse(localStorage.getItem(USER_PROFILE_KEY) || "{}") || {};
+  } catch (e) {
+    return {};
   }
 }
 
@@ -124,17 +66,43 @@ function formatClickableText(raw) {
   return out.replace(/\n/g, "<br>");
 }
 
-// Terapkan profil utama
-document.getElementById("communityName").textContent = data.name;
-document.getElementById("communityHandle").textContent = data.handle;
-document.getElementById("communityBio").innerHTML = formatClickableText(data.bio);
-document.getElementById("aboutName").textContent = data.name;
-document.getElementById("aboutBio").innerHTML = formatClickableText(data.bio);
+function applyProfileVisuals() {
+  const fresh = getCommunity();
+  Object.assign(data, fresh);
+  const userProf = getUserProfile();
 
-if (data.avatar) document.getElementById("avatarImage").src = data.avatar;
-if (data.banner) document.getElementById("coverImage").style.backgroundImage = `url("${data.banner}")`;
+  const nameEl = document.getElementById("communityName");
+  const handleEl = document.getElementById("communityHandle");
+  const bioEl = document.getElementById("communityBio");
+  const aboutNameEl = document.getElementById("aboutName");
+  const aboutBioEl = document.getElementById("aboutBio");
+  const avatarEl = document.getElementById("avatarImage");
+  const navAvatarEl = document.getElementById("navProfileAvatar");
+  const coverEl = document.getElementById("coverImage");
 
-// Render Feed Pengumuman di Tab Beranda
+  if (nameEl) nameEl.textContent = data.name;
+  if (handleEl) handleEl.textContent = data.handle;
+  if (bioEl) bioEl.innerHTML = formatClickableText(data.bio);
+  if (aboutNameEl) aboutNameEl.textContent = data.name;
+  if (aboutBioEl) aboutBioEl.innerHTML = formatClickableText(data.bio);
+
+  const avatarSrc = data.avatar || userProf.avatar || DEFAULT_AVATAR;
+  const bannerSrc = data.banner || userProf.banner || "";
+
+  if (avatarEl) avatarEl.src = avatarSrc;
+  if (navAvatarEl) navAvatarEl.src = avatarSrc;
+
+  if (coverEl) {
+    if (bannerSrc) {
+      coverEl.style.backgroundImage = `url("${String(bannerSrc).replace(/"/g, "&quot;")}")`;
+      coverEl.style.backgroundSize = "cover";
+      coverEl.style.backgroundPosition = "center";
+    } else {
+      coverEl.style.backgroundImage = "";
+    }
+  }
+}
+
 function renderAnnouncementFeed() {
   const feed = document.getElementById("announcementFeed");
   if (!feed) return;
@@ -182,17 +150,16 @@ function renderAnnouncementFeed() {
   });
 }
 
-// Render List Konten
 function renderContentList(filter = "") {
   const container = document.getElementById("contentListContainer");
   if (!container) return;
   container.innerHTML = "";
-  
+
   const contents = data.contents || defaults.contents;
-  const filtered = contents.filter(c => 
+  const filtered = contents.filter(c =>
     (c.title || "").toLowerCase().includes(filter) || (c.desc || "").toLowerCase().includes(filter)
   );
-  
+
   const countLabel = document.getElementById("contentCountLabel");
   if (countLabel) countLabel.textContent = `${filtered.length} konten`;
 
@@ -205,14 +172,14 @@ function renderContentList(filter = "") {
     const row = document.createElement("div");
     row.className = "member-row";
     row.style.cursor = "pointer";
-    
+
     row.innerHTML = `
-      <div class="member-avatar" style="background:#3a3b52">${escText(item.title ? item.title.charAt(0).toUpperCase() : 'C')}</div>
+      <div class="member-avatar" style="background:#3a3b52">${escText(item.title ? item.title.charAt(0).toUpperCase() : "C")}</div>
       <div class="member-info">
         <strong>${escText(item.title)}</strong>
-        <small>${escText(item.category || 'Konten')} · ${formatClickableText(item.desc ? item.desc.substring(0, 80) : '')}</small>
+        <small>${escText(item.category || "Konten")} · ${formatClickableText(item.desc ? item.desc.substring(0, 80) : "")}</small>
       </div>
-      <span class="role">${escText(item.category ? item.category.toUpperCase() : 'BUKA')}</span>
+      <span class="role">${escText(item.category ? item.category.toUpperCase() : "BUKA")}</span>
     `;
 
     let pressTimer = null, longPressed = false;
@@ -238,7 +205,6 @@ function renderContentList(filter = "") {
   });
 }
 
-// Render Galeri Media (Arsip Gambar)
 function renderMediaGallery() {
   const grid = document.getElementById("mediaGridContainer");
   if (!grid) return;
@@ -254,7 +220,6 @@ function renderMediaGallery() {
     archivedImages.push(obj);
   }
 
-  // 1. Gambar dari mediaList bawaan / tersimpan
   (data.mediaList || defaults.mediaList).forEach(m => {
     pushImage({
       title: (m.text || "Arsip Media").replace(/\n+/g, " "),
@@ -264,7 +229,6 @@ function renderMediaGallery() {
     });
   });
 
-  // 2. Kumpulkan gambar dari blok kanvas Konten & Pengumuman Beranda
   const allItems = [
     ...(Array.isArray(data.announcements) ? data.announcements : []),
     ...(Array.isArray(data.contents) ? data.contents : [])
@@ -332,16 +296,14 @@ function renderMediaGallery() {
   });
 }
 
-
-// Modal Detail Konten
 function openContentFullscreen(item) {
   const modal = document.getElementById("contentDetailModal");
   const body = document.getElementById("detailContentBody");
-  
+
   body.innerHTML = `
-    <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 800; text-transform: uppercase;">${escText(item.category || 'KONTEN')}</span>
+    <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 800; text-transform: uppercase;">${escText(item.category || "KONTEN")}</span>
     <h1 style="font: 700 24px 'Space Grotesk'; margin: 8px 0 14px; color: var(--text);">${escText(item.title)}</h1>
-    ${item.media ? `<div style="margin: 15px 0; border-radius: 10px; overflow: hidden; max-height: 350px;"><img src="${escText(item.media)}" style="width:100%; object-fit:cover;"></div>` : ''}
+    ${item.media ? `<div style="margin: 15px 0; border-radius: 10px; overflow: hidden; max-height: 350px;"><img src="${escText(item.media)}" style="width:100%; object-fit:cover;"></div>` : ""}
     <p id="detailDescP" style="font-size: 14px; line-height: 1.7; color: #c3c9d3; margin-top: 10px;">${formatClickableText(item.desc || "")}</p>
   `;
   modal.style.display = "block";
@@ -379,7 +341,6 @@ document.getElementById("closeDetailBtn").addEventListener("click", () => {
   document.getElementById("contentDetailModal").style.display = "none";
 });
 
-// Navigasi Tab
 const tabs = document.querySelectorAll(".tab");
 tabs.forEach(tab => tab.addEventListener("click", () => {
   tabs.forEach(t => t.classList.remove("active"));
@@ -388,7 +349,6 @@ tabs.forEach(tab => tab.addEventListener("click", () => {
   document.getElementById(tab.dataset.tab).classList.add("active");
 }));
 
-// Navigasi Bottom Menu
 document.querySelectorAll(".bottom-item").forEach(link => link.addEventListener("click", (e) => {
   e.preventDefault();
   document.querySelectorAll(".bottom-item").forEach(x => x.classList.remove("active"));
@@ -425,7 +385,6 @@ function showToast(message) {
   setTimeout(() => t.classList.remove("show"), 2200);
 }
 
-// Animasi bertahap untuk kartu pengumuman, list konten, media & about
 function animateCommunityItems() {
   const targets = document.querySelectorAll(
     "#announcementFeed .post-card, #contentListContainer .member-row, #mediaGridContainer .media-tile, #tentang .about-card"
@@ -467,50 +426,46 @@ document.querySelectorAll(".bottom-item").forEach((link) => {
   link.addEventListener("click", () => setTimeout(animateCommunityItems, 20));
 });
 
-async function adminCommit(saveFn) {
-  if (!window.AlcrazhyAuth) {
-    alert("Modul firebase-auth.js belum dimuat.");
-    return false;
-  }
-  const loggedIn = await window.AlcrazhyAuth.requireAdminLogin();
-  if (!loggedIn) {
-    alert("Aksi dibatalkan: harus login admin terlebih dahulu.");
-    return false;
-  }
+async function syncFromRemoteGitHub() {
+  if (!window.AlcrazhyGitHub) return;
   try {
-    await saveFn();
-    return true;
-  } catch (err) {
-    alert(err.message || "Gagal menyimpan ke GitHub.");
-    return false;
-  }
-}
-
-async function saveProject() {
-  await adminCommit(async () => {
-    const p = layers.find(x => x.type === "profile") || layers[0], fx = {};
-    Object.keys(B).forEach(k => fx[k] = p[k]);
-    fx.fill = p.fill;
-    D.profileFx = fx;
-    D.layers = layers.filter(x => x.id !== p.id);
-    D.ui = {};
-    Object.values(ui).forEach(l => {
-      if (uiDirty(l)) {
-        const { orig, ...o } = l;
-        D.ui[l.id] = o;
+    if (typeof window.AlcrazhyGitHub.syncFromGitHub === "function") {
+      const remote = await window.AlcrazhyGitHub.syncFromGitHub();
+      if (remote && typeof remote === "object") {
+        const cur = JSON.parse(localStorage.getItem("alcrazhyCommunity") || "{}");
+        localStorage.setItem("alcrazhyCommunity", JSON.stringify({ ...cur, ...remote }));
       }
-    });
-    if (window.AlcrazhyGitHub) {
-      await window.AlcrazhyGitHub.saveCommunityData(D, "Update editor & tampilan komunitas");
-    } else {
-      localStorage.setItem("alcrazhyCommunity", JSON.stringify(D));
     }
-    alert("Perubahan berhasil disimpan!");
-    location.href = "index.html";
-  });
+    if (typeof window.AlcrazhyGitHub.loadProfileData === "function") {
+      const prof = await window.AlcrazhyGitHub.loadProfileData();
+      if (prof && typeof prof === "object") {
+        const curProf = getUserProfile();
+        localStorage.setItem(USER_PROFILE_KEY, JSON.stringify({ ...curProf, ...prof }));
+      }
+    }
+  } catch (e) {
+    console.warn("Sinkronisasi GitHub gagal:", e);
+  }
+  applyProfileVisuals();
+  if (typeof window.applyUI === "function") {
+    try {
+      window.applyUI(document, getCommunity().ui);
+    } catch (e) {}
+  }
+  renderAnnouncementFeed();
+  renderContentList();
+  renderMediaGallery();
 }
 
+window.addEventListener("storage", (e) => {
+  if (e.key === "alcrazhyCommunity" || e.key === USER_PROFILE_KEY) {
+    applyProfileVisuals();
+  }
+});
+
+applyProfileVisuals();
 animateCommunityItems();
 renderAnnouncementFeed();
 renderContentList();
 renderMediaGallery();
+window.addEventListener("DOMContentLoaded", syncFromRemoteGitHub);
