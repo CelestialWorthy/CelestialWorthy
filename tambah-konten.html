@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Tambah Konten - Alcrazhy</title>
+<link rel="stylesheet" href="tambah-konten.css">
+</head>
+<body>
+<header class="top">
+  <a href="index.html" class="ib">✕</a>
+  <b class="ttl" id="pageModeTitle">Konten Baru</b>
+  <button type="button" class="save" id="pub">Terbitkan</button>
+</header>
+<main class="page">
+  <div class="dest-switch">
+    <button type="button" class="dest-btn active" id="modeKonten">1. Konten</button>
+    <button type="button" class="dest-btn" id="modeBeranda">2. Beranda</button>
+  </div>
+
+  <div class="meta">
+    <input id="title" type="text" placeholder="Judul konten">
+    <input id="cat" list="catSuggestions" type="text" placeholder="Kategori (misal: Pengumuman)">
+    <datalist id="catSuggestions">
+      <option value="Pengumuman">
+      <option value="Panduan">
+      <option value="Umum">
+    </datalist>
+    <textarea id="desc" class="desc-auto" rows="3" placeholder="Tulis deskripsi atau link di sini..."></textarea>
+
+    <textarea id="desc" rows="2" placeholder="Deskripsi atau link (misal: https://youtube.com/...)"></textarea>
+  </div>
+
+  <div class="host" id="host"><div id="st"></div></div>
+  <p class="hint">Ketuk elemen untuk memilih, geser untuk memindah, tarik titik hijau untuk mengubah ukuran.</p>
+
+  <section class="folder-sec" id="folderSec">
+    <div class="folder-bar">
+      <b>Folder &amp; File Dokumen</b>
+      <button type="button" class="mini-btn" id="btnNewFolder">+ Buat Folder</button>
+    </div>
+    <div class="folder-create" id="folderCreate" style="display:none">
+      <input id="newFolderInp" type="text" placeholder="Nama folder baru (misal: Dokumen PDF, Catatan)">
+      <button type="button" class="mini-btn ac" id="saveFolderBtn">Simpan</button>
+      <button type="button" class="mini-btn" id="cancelFolderBtn">Batal</button>
+    </div>
+    <label class="pick-lbl" for="targetFolderSel">Masukkan file ke folder (pilih foldernya):</label>
+    <select id="targetFolderSel"></select>
+    <div id="folderGroups" class="folder-groups"></div>
+    <div class="sub-ttl">File di luar folder</div>
+    <div id="files" class="files"></div>
+  </section>
+</main>
+<nav class="tools">
+  <button type="button" onclick="sheet('size')"><i>✥</i>Ukuran &amp; Posisi</button>
+  <button type="button" onclick="sheet('color')"><i>💧</i>Warna &amp; Bentuk</button>
+  <button type="button" onclick="sheet('text')"><i>Aa</i>Teks</button>
+  <button type="button" onclick="sheet('border')"><i>▢</i>Border &amp; Bayangan</button>
+  <button type="button" onclick="sheet('canvas')"><i>▦</i>Kanvas</button>
+  <button type="button" onclick="dup()"><i>⧉</i>Duplikat</button>
+  <button type="button" class="del" onclick="del()"><i>🗑</i>Hapus</button>
+</nav>
+<button type="button" class="fab" onclick="sheet('add')">＋</button>
+<div class="sheet" id="sheet"></div>
+<input type="file" id="fi" hidden>
+<script src="konten-render.js"></script>
+<script src="tambah-konten.js"></script>
+  <script type="module" src="firebase-auth.js"></script>
+<script>
+  window.addEventListener("DOMContentLoaded", async () => {
+    // Sembunyikan isi halaman sampai status login terverifikasi
+    document.body.style.visibility = "hidden";
+    const check = setInterval(async () => {
+      if (!window.AlcrazhyAuth) return;
+      clearInterval(check);
+      const ok = await window.AlcrazhyAuth.requireAdminLogin();
+      if (ok) {
+        document.body.style.visibility = "visible";
+      } else {
+        location.href = "index.html";
+      }
+    }, 50);
+  });
+</script>
+
+</body>
+</html>
