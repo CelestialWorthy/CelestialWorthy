@@ -644,4 +644,4 @@ buildTimeline = function () {
   });
 };
 
-setMode("halaman");
+setMode("kartu");
