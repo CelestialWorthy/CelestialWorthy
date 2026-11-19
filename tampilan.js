@@ -22,7 +22,8 @@ window.applyUI=function(doc,ui,only){
     e.style.border=l.bw?`${l.bw}px solid ${l.bc}`:"";
     e.style.boxShadow=l.sh?`0 ${l.sh/2}px ${l.sh}px rgba(0,0,0,.65)`:"";
     e.style.display=l.hide?"none":"";
-    if(tc)e.style.color=l.fill||"";else e.style.backgroundColor=l.fill||"";
+    if(tc)e.style.color=l.fill||"";
+    else if(l.fill)e.style.backgroundColor=l.fill;
     if(l.text)e.textContent=l.text;
   });
 };
