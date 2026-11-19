@@ -6,15 +6,18 @@
 <meta name="theme-color" content="#0b0d12">
 <title>Studio Editor - Alcrazhy</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="editor.css?v=3">
+<link rel="stylesheet" href="editor.css?v=4">
 </head>
 <body>
 <header class="top">
   <a href="index.html" class="ib">←</a>
-  <div class="seg"><button id="mK" class="on" onclick="setMode('kartu')">Kartu</button><button id="mH" onclick="setMode('halaman')">Halaman Utama</button></div>
+  <div class="seg">
+    <button id="mK" class="on" onclick="setMode('kartu')">Kartu</button>
+    <button id="mH" onclick="setMode('halaman')">Halaman Utama</button>
+  </div>
   <button class="save" onclick="saveProject()">Simpan</button>
 </header>
-  
+
 <section class="edit-panel">
   <div class="edit-group">
     <label for="editAvatarFile">Avatar Komunitas</label>
@@ -34,11 +37,15 @@
       <div class="banner" id="pBanner"></div>
       <div class="pmain">
         <img id="pAvatar" alt="">
-        <h2 id="pName"></h2><p id="pHandle"></p><p id="pBio" class="bio"></p>
+        <h2 id="pName"></h2>
+        <p id="pHandle"></p>
+        <p id="pBio" class="bio"></p>
       </div>
     </div>
   </div>
-  <div class="stage pg" id="pstage" style="display:none"><div id="fw"><iframe id="frame" src="index.html"></iframe></div></div>
+  <div class="stage pg" id="pstage" style="display:none">
+    <div id="fw"><iframe id="frame" src="index.html?v=4"></iframe></div>
+  </div>
 </main>
 
 <div class="play">
@@ -69,13 +76,13 @@
 <button class="fab" onclick="sheet('add')">＋</button>
 <div class="sheet" id="sheet"></div>
 <input type="file" id="file" accept="image/*" hidden>
-<script src="tampilan.js?v=3"></script>
-<script src="editor.js?v=3"></script>
-<script src="github_storage.js"></script>
-<script type="module" src="firebase-auth.js"></script>
+
+<script src="github_storage.js?v=4"></script>
+<script type="module" src="firebase-auth.js?v=4"></script>
+<script src="tampilan.js?v=4"></script>
+<script src="editor.js?v=4"></script>
 <script>
   window.addEventListener("DOMContentLoaded", async () => {
-    // Sembunyikan isi halaman sampai status login terverifikasi
     document.body.style.visibility = "hidden";
     const check = setInterval(async () => {
       if (!window.AlcrazhyAuth) return;
@@ -89,6 +96,5 @@
     }, 50);
   });
 </script>
-  
 </body>
 </html>
