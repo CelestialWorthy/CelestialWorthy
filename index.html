@@ -132,37 +132,39 @@
       <div id="detailContentBody" style="background: #11151d; border: 1px solid #252b36; border-radius: 20px; padding: 30px;"></div>
     </div>
   </div>
+  
+    <div class="toast" id="toast"></div>
+  <script src="github_storage.js?v=4"></script>
+  <script type="module" src="firebase-auth.js?v=4"></script>
+  <script src="script.js?v=4"></script>
+  <script src="tampilan.js?v=4"></script>
+  <script src="konten-render.js?v=4"></script>
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      const authBtn = document.getElementById("adminAuthBtn");
+      if (!authBtn) return;
 
-  <div class="toast" id="toast"></div>
-  <script src="script.js"></script>
-  <script src="tampilan.js"></script>
-  <script src="konten-render.js"></script>
-  <script src="github_storage.js"></script>
-  <script type="module" src="firebase-auth.js"></script>
-<script>
-  window.addEventListener("DOMContentLoaded", () => {
-    const authBtn = document.getElementById("adminAuthBtn");
-    if (!authBtn) return;
-
-    function updateAuthBtn(user) {
-      authBtn.textContent = user ? "⎋" : "⌬";
-      authBtn.title = user ? "Logout Admin" : "Login Admin";
-    }
-
-    window.addEventListener("alcrazhy:auth-change", (e) => updateAuthBtn(e.detail?.user));
-
-    authBtn.addEventListener("click", async () => {
-      if (!window.AlcrazhyAuth) return;
-      if (window.AlcrazhyAuth.getAdminUser()) {
-        if (confirm("Keluar dari sesi admin?")) {
-          await window.AlcrazhyAuth.logoutAdmin();
-        }
-      } else {
-        await window.AlcrazhyAuth.openLoginModal();
+      function updateAuthBtn(user) {
+        authBtn.textContent = user ? "⎋" : "⌬";
+        authBtn.title = user ? "Logout Admin" : "Login Admin";
       }
+
+      window.addEventListener("alcrazhy:auth-change", (e) => updateAuthBtn(e.detail?.user));
+
+      authBtn.addEventListener("click", async () => {
+        if (!window.AlcrazhyAuth) return;
+        if (window.AlcrazhyAuth.getAdminUser()) {
+          if (confirm("Keluar dari sesi admin?")) {
+            await window.AlcrazhyAuth.logoutAdmin();
+          }
+        } else {
+          await window.AlcrazhyAuth.openLoginModal();
+        }
+      });
     });
-  });
-</script>
+  </script>
+</body>
+
 
 </body>
 </html>
