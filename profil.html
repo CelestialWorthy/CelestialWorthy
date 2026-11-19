@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#090b10">
+<title>Profil Pribadi - Alcrazhy</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#090b10;
+    --card:#11141c;
+    --card2:#171b26;
+    --line:#242a38;
+    --text:#eef1f6;
+    --muted:#9aa3b5;
+    --accent:#27e0a0;
+    --accent-soft:rgba(39,224,160,.14);
+    --btn:#4f6ef7;
+    --btn-hover:#5e7bff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'DM Sans',sans-serif;
+    min-height:100vh;
+    padding-bottom:36px;
+  }
+  a{color:inherit;text-decoration:none}
+
+  .topbar{
+    position:sticky;top:0;z-index:20;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 16px;
+    background:rgba(9,11,16,.88);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .icon-btn{
+    width:36px;height:36px;border-radius:10px;
+    display:grid;place-items:center;
+    background:var(--card2);border:1px solid var(--line);
+    font-size:16px;font-weight:700;cursor:pointer;
+  }
+  .brand{
+    font:700 15px/1 'Space Grotesk',sans-serif;
+    letter-spacing:1.5px;
+  }
+  .brand span{color:var(--accent)}
+
+  .wrap{max-width:560px;margin:0 auto;padding:14px}
+
+  .profile-box{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:18px;
+    overflow:hidden;
+  }
+  .banner{
+    height:126px;
+    background:linear-gradient(135deg,#2b213a 0%,#16242b 55%,#101622 100%);
+    background-size:cover;
+    background-position:center;
+    position:relative;
+  }
+
+  .identity-area{
+    padding:0 16px 16px;
+    position:relative;
+  }
+  .avatar-row{
+    display:flex;
+    align-items:flex-end;
+    gap:12px;
+    margin-top:-42px;
+    margin-bottom:10px;
+  }
+  .avatar-frame{
+    width:84px;height:84px;
+    border-radius:50%;
+    padding:4px;
+    background:var(--card);
+    flex-shrink:0;
+    position:relative;
+  }
+  .avatar-frame img{
+    width:100%;height:100%;
+    border-radius:50%;
+    object-fit:cover;
+    display:block;
+    background:#1d2230;
+  }
+  .status-dot{
+    position:absolute;right:4px;bottom:4px;
+    width:18px;height:18px;border-radius:50%;
+    background:var(--accent);
+    border:3px solid var(--card);
+  }
+
+  .status-bubble{
+    background:var(--card2);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:8px 12px;
+    font-size:12px;
+    color:#dce2ee;
+    line-height:1.35;
+    margin-bottom:6px;
+    max-width:100%;
+    word-break:break-word;
+  }
+
+  .name-row{
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  }
+  .display-name{
+    font:700 22px/1.2 'Space Grotesk',sans-serif;
+  }
+  .username-line{
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    margin-top:4px;
+    font-size:13px;color:var(--muted);
+  }
+  .badge{
+    display:inline-flex;align-items:center;gap:4px;
+    background:var(--accent-soft);
+    color:var(--accent);
+    border:1px solid rgba(39,224,160,.28);
+    border-radius:7px;
+    padding:2px 8px;
+    font-size:11px;font-weight:700;
+  }
+
+  .edit-toggle-btn{
+    margin-top:14px;
+    width:100%;
+    padding:11px 14px;
+    border:none;
+    border-radius:11px;
+    background:var(--btn);
+    color:#fff;
+    font:700 13px/1 'DM Sans',sans-serif;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:7px;
+  }
+  .edit-toggle-btn:hover{background:var(--btn-hover)}
+
+  .subtabs{
+    display:grid;grid-template-columns:repeat(3,1fr);
+    border-bottom:1px solid var(--line);
+    margin-top:14px;
+  }
+  .subtab{
+    padding:12px 8px;
+    background:none;border:none;
+    color:var(--muted);
+    font:700 13px/1 'DM Sans',sans-serif;
+    cursor:pointer;
+    position:relative;
+  }
+  .subtab.active{color:var(--text)}
+  .subtab.active::after{
+    content:"";position:absolute;left:18%;right:18%;bottom:0;
+    height:2px;background:var(--accent);border-radius:2px;
+  }
+
+  .tab-body{padding:16px;display:grid;gap:14px}
+  .info-card{
+    background:var(--card2);
+    border:1px solid var(--line);
+    border-radius:13px;
+    padding:13px 14px;
+  }
+  .info-label{
+    font-size:11px;font-weight:700;letter-spacing:.4px;
+    color:var(--muted);margin-bottom:6px;
+  }
+  .info-value{
+    font-size:14px;line-height:1.6;color:var(--text);
+    white-space:pre-wrap;word-break:break-word;
+  }
+
+  .edit-panel{
+    display:none;
+    margin-top:14px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:16px;
+  }
+  .edit-panel.open{display:grid;gap:11px}
+  .edit-panel h3{
+    font:700 16px/1.2 'Space Grotesk',sans-serif;
+    margin-bottom:2px;
+  }
+  .field-label{font-size:12px;color:var(--muted);margin-bottom:4px;display:block}
+  .inp, .ta{
+    width:100%;
+    background:var(--card2);
+    color:var(--text);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px 12px;
+    font:13px/1.5 'DM Sans',sans-serif;
+  }
+  .ta{min-height:76px;resize:vertical}
+  .btn-row{display:flex;gap:8px;margin-top:4px;flex-wrap:wrap}
+  .btn-save{
+    flex:1;padding:10px 14px;border:none;border-radius:10px;
+    background:var(--accent);color:#06120d;
+    font:700 13px/1 'DM Sans',sans-serif;cursor:pointer;
+  }
+  .btn-cancel{
+    padding:10px 14px;border-radius:10px;
+    background:var(--card2);color:var(--text);
+    border:1px solid var(--line);
+    font:700 13px/1 'DM Sans',sans-serif;cursor:pointer;
+  }
+  .btn-danger{
+    padding:10px 14px;border-radius:10px;
+    background:#24171a;color:#ff6b6b;
+    border:1px solid #4c262c;
+    font:700 12px/1 'DM Sans',sans-serif;cursor:pointer;
+  }
+
+  .toast{
+    position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(16px);
+    background:#192231;color:var(--text);border:1px solid var(--accent);
+    padding:9px 16px;border-radius:999px;font-size:12px;font-weight:700;
+    opacity:0;pointer-events:none;transition:.22s ease;z-index:50;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* Animasi profil pribadi (tanpa mengubah tata letak) */
+.topbar {
+  animation: prFadeDown 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.profile-box {
+  animation: prFadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.avatar-frame {
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.avatar-frame:hover {
+  transform: scale(1.04);
+}
+
+.status-dot {
+  animation: prDotPulse 2.4s ease-in-out infinite;
+}
+
+.edit-toggle-btn,
+.btn-save,
+.btn-cancel,
+.btn-danger,
+.icon-btn,
+.subtab {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.edit-toggle-btn:active,
+.btn-save:active,
+.btn-cancel:active,
+.btn-danger:active,
+.icon-btn:active,
+.subtab:active {
+  transform: scale(0.96);
+}
+
+.tab-body .info-card {
+  animation: prFadeUp 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.edit-panel {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.24s ease, transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.edit-panel.open {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes prFadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes prFadeDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes prDotPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(39, 224, 160, 0.55); }
+  50% { box-shadow: 0 0 0 6px rgba(39, 224, 160, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+</style>
+</head>
+<body>
+  <header class="topbar">
+  <a class="icon-btn" href="index.html" title="Kembali">←</a>
+  <div class="brand">PROFIL<span>.</span></div>
+  <a class="icon-btn" href="tambah-konten.html" title="Tambah Konten" data-admin-only style="display:none">＋</a>
+</header>
+
+  <main class="wrap">
+    <section class="profile-box">
+      <div class="banner" id="pBanner"></div>
+
+      <div class="identity-area">
+        <div class="avatar-row">
+          <div class="avatar-frame">
+            <img id="pAvatar" src="https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=300&h=300&fit=crop" alt="Avatar">
+            <span class="status-dot"></span>
+          </div>
+          <div class="status-bubble" id="pStatus">✦ Sedang merancang cerita &amp; dunia...</div>
+        </div>
+
+        <div class="name-row">
+          <h1 class="display-name" id="pName">Reyken</h1>
+        </div>
+        <div class="username-line">
+          <span id="pHandle">@reyken.archive</span>
+          <span class="badge" id="pBadge">✦ Creator</span>
+        </div>
+        <button type="button" class="edit-toggle-btn" id="toggleEditBtn" data-admin-only style="display:none">✎ Edit Profile</button>
+      </div>
+
+      <div class="subtabs" role="tablist">
+        <button type="button" class="subtab active" data-tab="main">Main</button>
+        <button type="button" class="subtab" data-tab="activity">Activity</button>
+        <button type="button" class="subtab" data-tab="wishlist">Wishlist</button>
+      </div>
+
+      <div class="tab-body" id="tabMain">
+        <div class="info-card">
+          <div class="info-label">ABOUT ME</div>
+          <div class="info-value" id="pBio">Menulis kisah gelap, membangun semesta, dan mengutak-atik antarmuka.</div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-label">MEMBER SINCE</div>
+          <div class="info-value" id="pSince">Nov 19, 2026</div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-label">NOTE (ONLY VISIBLE TO YOU)</div>
+          <div class="info-value" id="pNote">Catatan pribadi atau ide cepat berikutnya...</div>
+        </div>
+      </div>
+
+      <div class="tab-body" id="tabActivity" style="display:none">
+        <div class="info-card">
+          <div class="info-label">RECENT ACTIVITY</div>
+          <div class="info-value" id="pActivity">Fokus merapikan profil, galeri media, dan editor konten.</div>
+        </div>
+      </div>
+
+      <div class="tab-body" id="tabWishlist" style="display:none">
+        <div class="info-card">
+          <div class="info-label">WISHLIST &amp; GOALS</div>
+          <div class="info-value" id="pWishlist">Menyelesaikan bab lanjutan dan menyempurnakan fitur komunitas.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="edit-panel" id="editPanel">
+      <h3>Edit Profil Pribadi</h3>
+
+      <div>
+        <label class="field-label" for="fileAvatar">Upload Avatar dari Galeri (PNG / JPG)</label>
+        <input class="inp" id="fileAvatar" type="file" accept="image/png,image/jpeg">
+      </div>
+
+      <div>
+        <label class="field-label" for="fileBanner">Upload Banner dari Galeri (PNG / JPG)</label>
+        <input class="inp" id="fileBanner" type="file" accept="image/png,image/jpeg">
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="btn-danger" id="btnResetAvatar">Hapus Avatar</button>
+        <button type="button" class="btn-danger" id="btnResetBanner">Hapus Banner</button>
+      </div>
+
+      <div>
+        <label class="field-label" for="inpName">Nama Tampilan</label>
+        <input class="inp" id="inpName" type="text" placeholder="Nama tampilan">
+      </div>
+
+      <div>
+        <label class="field-label" for="inpHandle">Handle / Username</label>
+        <input class="inp" id="inpHandle" type="text" placeholder="@username">
+      </div>
+
+      <div>
+        <label class="field-label" for="inpBadge">Badge</label>
+        <input class="inp" id="inpBadge" type="text" placeholder="Contoh: ✦ Creator">
+      </div>
+
+      <div>
+        <label class="field-label" for="inpStatus">Status Bubble</label>
+        <input class="inp" id="inpStatus" type="text" placeholder="Status singkat di sebelah avatar">
+      </div>
+
+      <div>
+        <label class="field-label" for="inpAvatar">URL Foto Avatar (opsional)</label>
+        <input class="inp" id="inpAvatar" type="text" placeholder="https://...">
+      </div>
+
+      <div>
+        <label class="field-label" for="inpBanner">URL Gambar Banner (opsional)</label>
+        <input class="inp" id="inpBanner" type="text" placeholder="https://...">
+      </div>
+
+      <div>
+        <label class="field-label" for="inpBio">About Me / Bio</label>
+        <textarea class="ta" id="inpBio" placeholder="Tulis bio singkat..."></textarea>
+      </div>
+
+      <div>
+        <label class="field-label" for="inpActivity">Activity</label>
+        <textarea class="ta" id="inpActivity" placeholder="Aktivitas terkini..."></textarea>
+      </div>
+
+      <div>
+        <label class="field-label" for="inpWishlist">Wishlist</label>
+        <textarea class="ta" id="inpWishlist" placeholder="Daftar target atau keinginan..."></textarea>
+      </div>
+
+      <div>
+        <label class="field-label" for="inpNote">Note (Catatan Pribadi)</label>
+        <textarea class="ta" id="inpNote" placeholder="Catatan pribadi..."></textarea>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="btn-save" id="btnSave">Simpan Perubahan</button>
+        <button type="button" class="btn-cancel" id="btnCancel">Batal</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    (function(){
+      const KEY = "alcrazhyUserProfile";
+      const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=300&h=300&fit=crop";
+      const defaults = {
+        name: "Reyken",
+        handle: "@reyken.archive",
+        badge: "✦ Creator",
+        status: "✦ Sedang merancang cerita & dunia...",
+        avatar: "",
+        banner: "",
+        bio: "Menulis kisah gelap, membangun semesta, dan mengutak-atik antarmuka.",
+        since: "Nov 19, 2026",
+        note: "Catatan pribadi atau ide cepat berikutnya...",
+        activity: "Fokus merapikan profil, galeri media, dan editor konten.",
+        wishlist: "Menyelesaikan bab lanjutan dan menyempurnakan fitur komunitas."
+      };
+
+      let profile = { ...defaults };
+      try {
+        profile = { ...defaults, ...JSON.parse(localStorage.getItem(KEY) || "{}") };
+      } catch (e) {}
+
+      const $ = id => document.getElementById(id);
+
+      function showToast(msg) {
+        const t = $("toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2000);
+      }
+
+      function persist() {
+        try {
+          localStorage.setItem(KEY, JSON.stringify(profile));
+        } catch (e) {
+          showToast("Ukuran data terlalu besar untuk penyimpanan lokal!");
+        }
+      }
+
+      function compressFile(file, maxSize, quality, done) {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+          const cv = document.createElement("canvas");
+          cv.width = Math.max(1, Math.round(img.width * scale));
+          cv.height = Math.max(1, Math.round(img.height * scale));
+          const ctx = cv.getContext("2d");
+          ctx.drawImage(img, 0, 0, cv.width, cv.height);
+          URL.revokeObjectURL(url);
+          const mime = file.type === "image/png" ? "image/png" : "image/jpeg";
+          done(cv.toDataURL(mime, quality));
+        };
+        img.src = url;
+      }
+
+      function render() {
+        $("pName").textContent = profile.name || defaults.name;
+        $("pHandle").textContent = profile.handle || defaults.handle;
+        $("pBadge").textContent = profile.badge || defaults.badge;
+        $("pStatus").textContent = profile.status || defaults.status;
+        $("pBio").textContent = profile.bio || defaults.bio;
+        $("pSince").textContent = profile.since || defaults.since;
+        $("pNote").textContent = profile.note || defaults.note;
+        $("pActivity").textContent = profile.activity || defaults.activity;
+        $("pWishlist").textContent = profile.wishlist || defaults.wishlist;
+
+        $("pAvatar").src = profile.avatar || DEFAULT_AVATAR;
+
+        if (profile.banner) {
+          $("pBanner").style.backgroundImage = `url("${profile.banner.replace(/"/g, '&quot;')}")`;
+        } else {
+          $("pBanner").style.backgroundImage = "";
+        }
+
+        $("inpName").value = profile.name || "";
+        $("inpHandle").value = profile.handle || "";
+        $("inpBadge").value = profile.badge || "";
+        $("inpStatus").value = profile.status || "";
+        $("inpAvatar").value = profile.avatar || "";
+        $("inpBanner").value = profile.banner || "";
+        $("inpBio").value = profile.bio || "";
+        $("inpActivity").value = profile.activity || "";
+        $("inpWishlist").value = profile.wishlist || "";
+        $("inpNote").value = profile.note || "";
+      }
+
+      $("fileAvatar").addEventListener("change", () => {
+        const f = $("fileAvatar").files[0];
+        if (!f) return;
+        compressFile(f, 360, 0.82, dataUrl => {
+          profile.avatar = dataUrl;
+          $("inpAvatar").value = dataUrl;
+          persist();
+          render();
+          $("fileAvatar").value = "";
+          showToast("Avatar diperbarui!");
+        });
+      });
+
+      $("fileBanner").addEventListener("change", () => {
+        const f = $("fileBanner").files[0];
+        if (!f) return;
+        compressFile(f, 900, 0.8, dataUrl => {
+          profile.banner = dataUrl;
+          $("inpBanner").value = dataUrl;
+          persist();
+          render();
+          $("fileBanner").value = "";
+          showToast("Banner diperbarui!");
+        });
+      });
+
+      $("btnResetAvatar").addEventListener("click", () => {
+        profile.avatar = "";
+        $("inpAvatar").value = "";
+        persist();
+        render();
+        showToast("Avatar dikembalikan ke bawaan");
+      });
+
+      $("btnResetBanner").addEventListener("click", () => {
+        profile.banner = "";
+        $("inpBanner").value = "";
+        persist();
+        render();
+        showToast("Banner dikembalikan ke bawaan");
+      });
+
+      document.querySelectorAll(".subtab").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".subtab").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          const tab = btn.dataset.tab;
+          $("tabMain").style.display = tab === "main" ? "grid" : "none";
+          $("tabActivity").style.display = tab === "activity" ? "grid" : "none";
+          $("tabWishlist").style.display = tab === "wishlist" ? "grid" : "none";
+        });
+      });
+
+      $("toggleEditBtn").addEventListener("click", () => {
+        $("editPanel").classList.toggle("open");
+      });
+
+      $("btnCancel").addEventListener("click", () => {
+        render();
+        $("editPanel").classList.remove("open");
+      });
+
+      $("btnSave").addEventListener("click", () => {
+        profile = {
+          ...profile,
+          name: $("inpName").value.trim() || defaults.name,
+          handle: $("inpHandle").value.trim() || defaults.handle,
+          badge: $("inpBadge").value.trim() || defaults.badge,
+          status: $("inpStatus").value.trim() || defaults.status,
+          avatar: $("inpAvatar").value.trim(),
+          banner: $("inpBanner").value.trim(),
+          bio: $("inpBio").value.trim() || defaults.bio,
+          note: $("inpNote").value.trim() || defaults.note,
+          activity: $("inpActivity").value.trim() || defaults.activity,
+          wishlist: $("inpWishlist").value.trim() || defaults.wishlist
+        };
+        persist();
+        render();
+        $("editPanel").classList.remove("open");
+        showToast("Profil pribadi disimpan!");
+      });
+
+      render();
+    })();
+    
+$("btnSave").addEventListener("click", async () => {
+  await adminCommit(async () => {
+    profile = {
+      ...profile,
+      name: $("inpName").value.trim() || defaults.name,
+      handle: $("inpHandle").value.trim() || defaults.handle,
+      badge: $("inpBadge").value.trim() || defaults.badge,
+      status: $("inpStatus").value.trim() || defaults.status,
+      avatar: $("inpAvatar").value.trim(),
+      banner: $("inpBanner").value.trim(),
+      bio: $("inpBio").value.trim() || defaults.bio,
+      note: $("inpNote").value.trim() || defaults.note,
+      activity: $("inpActivity").value.trim() || defaults.activity,
+      wishlist: $("inpWishlist").value.trim() || defaults.wishlist
+    };
+    if (window.AlcrazhyGitHub) {
+      await window.AlcrazhyGitHub.saveProfileData(profile, "Update profil pribadi");
+    } else {
+      persist();
+    }
+    render();
+    $("editPanel").classList.remove("open");
+    showToast("Profil pribadi disimpan!");
+  });
+});
+
+  </script>
+  
+  <script type="module" src="firebase-auth.js"></script>
+<script>
+  window.addEventListener("alcrazhy:auth-change", (e) => {
+    if (!e.detail?.user) {
+      const panel = document.getElementById("editPanel");
+      if (panel) panel.classList.remove("open");
+    }
+  });
+</script>
+
+</body>
+</html>
