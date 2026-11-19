@@ -16,6 +16,75 @@ const defaults = {
     { id: 4, text: "✧", bg: "linear-gradient(140deg,#9a7650,#292039)" }
   ]
 };
+const USER_PROFILE_KEY = "alcrazhyUserProfile";
+const DEFAULT_MAIN_AVATAR = "https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=300&h=300&fit=crop";
+
+function getUserProfileData() {
+  try {
+    return JSON.parse(localStorage.getItem(USER_PROFILE_KEY) || "{}") || {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function applyMainAvatarAndBanner() {
+  const userProf = getUserProfileData();
+  const avatarSrc = userProf.avatar || data.avatar || DEFAULT_MAIN_AVATAR;
+  const bannerSrc = userProf.banner || data.banner || "";
+
+  const avatarEl = document.getElementById("avatarImage");
+  const navAvatarEl = document.getElementById("navProfileAvatar");
+  const coverEl = document.getElementById("coverImage");
+
+  if (avatarEl) avatarEl.src = avatarSrc;
+  if (navAvatarEl) navAvatarEl.src = avatarSrc;
+
+  if (coverEl) {
+    if (bannerSrc) {
+      const safeBanner = String(bannerSrc).replace(/"/g, "&quot;");
+      coverEl.style.backgroundImage = `url("${safeBanner}")`;
+      coverEl.style.backgroundSize = "cover";
+      coverEl.style.backgroundPosition = "center";
+    } else {
+      coverEl.style.backgroundImage = "";
+    }
+  }
+}
+
+async function syncMainVisualsFromGitHub() {
+  if (!window.AlcrazhyGitHub) return;
+  try {
+    if (typeof window.AlcrazhyGitHub.syncFromGitHub === "function") {
+      const comm = await window.AlcrazhyGitHub.syncFromGitHub();
+      if (comm && typeof comm === "object") {
+        Object.assign(data, comm);
+        const curComm = JSON.parse(localStorage.getItem("alcrazhyCommunity") || "{}");
+        localStorage.setItem("alcrazhyCommunity", JSON.stringify({ ...curComm, ...comm }));
+      }
+    }
+    if (typeof window.AlcrazhyGitHub.getProfileData === "function") {
+      const prof = await window.AlcrazhyGitHub.getProfileData();
+      if (prof && typeof prof === "object") {
+        const curProf = getUserProfileData();
+        localStorage.setItem(USER_PROFILE_KEY, JSON.stringify({ ...curProf, ...prof }));
+      }
+    }
+  } catch (e) {
+    console.warn("Gagal sinkronisasi data dari GitHub:", e);
+  }
+  applyMainAvatarAndBanner();
+}
+
+applyMainAvatarAndBanner();
+window.addEventListener("DOMContentLoaded", () => {
+  applyMainAvatarAndBanner();
+  syncMainVisualsFromGitHub();
+});
+window.addEventListener("storage", (e) => {
+  if (e.key === USER_PROFILE_KEY || e.key === "alcrazhyCommunity") {
+    applyMainAvatarAndBanner();
+  }
+});
 
 function getCommunity() {
   try {
