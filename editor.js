@@ -4,12 +4,29 @@ const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1519608487953-e999c86e
 const DUR = 10, PX = 60;
 const B = { x: 0, y: 0, w: 0, h: 0, scale: 100, rot: 0, skew: 0, opacity: 100, blend: "normal", bw: 0, bc: "#ffffff", sh: 0, start: 0, dur: DUR };
 let layers = [{ id: "profile", type: "profile", name: "Card Profil", ...B, ...(D.profileFx || {}) }, ...(D.layers || [])];
-let sel = "profile", t = 0, playing = false, prev = 0, uid = Date.now();
-let mode = "kartu";
+let sel = "card", t = 0, playing = false, prev = 0, uid = Date.now();
+let mode = "halaman";
 const ui = {}, list = () => mode === "kartu" ? layers : Object.values(ui);
 const cur = () => list().find(l => l.id === sel);
 const fmt = s => Math.floor(s / 60) + ":" + (s % 60).toFixed(1).padStart(4, "0");
 const COLORS = ["#ff3b30", "#ff9500", "#ffcc00", "#34c759", "#00c7be", "#007aff", "#af52de", "#ffffff", "#8e8e93", "#000000", "#10b981", "#d7b46a"];
+
+const FALLBACK_TARGETS = [
+  ["name", "Nama", "#communityName", 1, 1],
+  ["handle", "Handle", "#communityHandle", 1, 1],
+  ["bio", "Bio", "#communityBio", 1, 1],
+  ["btn1", "Tombol Lihat Konten", ".primary-btn", 0, 1],
+  ["btn2", "Tombol Bagikan", "#shareButton", 0, 1],
+  ["avatar", "Avatar", ".avatar-wrap", 0, 0],
+  ["cover", "Banner", "#coverImage", 0, 0],
+  ["card", "Card Profil", ".profile-card", 0, 0],
+  ["heading", "Kotak Judul", ".profile-heading", 0, 0],
+  ["tabs", "Tab Menu", ".tabs", 0, 0],
+  ["top", "Topbar", ".topbar", 0, 0],
+  ["bottom", "Menu Bawah", ".bottom-nav", 0, 0]
+];
+
+const TARGET_LIST = (typeof UI_TARGETS !== "undefined" && Array.isArray(UI_TARGETS)) ? UI_TARGETS : FALLBACK_TARGETS;
 
 /* ---------- render kanvas ---------- */
 function elOf(l) {
@@ -78,7 +95,7 @@ function paintAll() {
   if ($("#cnt")) $("#cnt").textContent = layers.length + " layer";
 }
 
-/* ---------- urutkan layer (atas = depan, bawah = belakang) ---------- */
+/* ---------- urutkan layer ---------- */
 function applyOrderData(id, toIdx, rebuild) {
   if (mode === "kartu") {
     const from = layers.findIndex(x => x.id === id);
@@ -422,7 +439,7 @@ async function saveProject() {
     D.layers = layers.filter(x => x.id !== p.id);
     D.ui = {};
     Object.values(ui).forEach(l => {
-      if (uiDirty(l)) {
+      if (typeof uiDirty === "function" ? uiDirty(l) : !!(l.x || l.y || l.w || l.h || l.rot || l.skew || l.scale != 100 || l.opacity != 100 || l.blend != "normal" || l.bw || l.sh || l.fill || l.text || l.hide)) {
         const { orig, ...o } = l;
         D.ui[l.id] = o;
       }
@@ -446,15 +463,13 @@ async function saveProject() {
 
 loadProfile();
 paintAll();
-buildTimeline();
 
 /* ---------- mode Halaman Utama ---------- */
-const HAS = typeof UI_TARGETS !== "undefined";
 let fd = null;
-HAS && UI_TARGETS.forEach(([k, n, s, tc, ed]) => {
+TARGET_LIST.forEach(([k, n, s, tc, ed]) => {
   ui[k] = { id: k, sel: s, name: n, tc, ed, ...B, fill: "", text: "", hide: false, ...((D.ui && D.ui[k]) || {}) };
 });
-HAS && Object.entries(D.ui || {}).forEach(([k, v]) => {
+Object.entries(D.ui || {}).forEach(([k, v]) => {
   if (!ui[k] && v && v.sel) ui[k] = { ...B, fill: "", text: "", hide: false, ...v };
 });
 
@@ -462,7 +477,9 @@ function paintUI(l) {
   if (!fd) return;
   const e = fd.querySelector(l.sel); if (!e) return;
   if (l.ed && !l.text && l.orig != null) e.textContent = l.orig;
-  applyUI(fd, { [l.id]: { ...l, hide: false, opacity: l.hide ? 20 : l.opacity } }, l.id);
+  if (typeof applyUI === "function") {
+    applyUI(fd, { [l.id]: { ...l, hide: false, opacity: l.hide ? 20 : l.opacity } }, l.id);
+  }
   e.classList.toggle("ui-sel", l.id === sel);
 }
 
@@ -508,10 +525,7 @@ function fit() {
 
 $("#frame").onload = () => {
   try { fd = $("#frame").contentDocument; fd.body; } catch (e) { fd = null; }
-  if (!fd) {
-    alert("Halaman utama tidak bisa dimuat di editor. Buka editor lewat hosting (GitHub Pages), bukan file lokal.");
-    return;
-  }
+  if (!fd) return;
   const st = fd.createElement("style");
   st.textContent = ".ui-sel{outline:2px solid #27e0a0!important;outline-offset:2px}";
   fd.head.appendChild(st);
@@ -521,12 +535,14 @@ $("#frame").onload = () => {
   setTimeout(fit, 400);
   fd.addEventListener("click", ev => { if (ev.target.closest("a,button")) ev.preventDefault(); }, true);
   Object.values(ui).forEach(paint);
-  if (mode !== "kartu") buildTimeline();
+  buildTimeline();
 };
 
 function setMode(m) {
-  if (!HAS) { alert("File tampilan.js belum terunggah di folder yang sama dengan editor.html."); return; }
-  mode = m; sel = m === "kartu" ? "profile" : "card"; closeSheet(); const k = m === "kartu";
+  mode = m;
+  sel = m === "kartu" ? "profile" : "card";
+  closeSheet();
+  const k = m === "kartu";
   $("#stage").style.display = k ? "" : "none";
   $("#pstage").style.display = k ? "none" : "block";
   $(".play").style.display = k ? "" : "none";
@@ -537,8 +553,16 @@ function setMode(m) {
   $("#mH").classList.toggle("on", !k);
   $("#bDup").innerHTML = k ? "<i>⧉</i>Duplikat" : "<i>↺</i>Reset";
   $("#bDel").innerHTML = k ? "<i>🗑</i>Hapus" : "<i>🚫</i>Sembunyikan";
-  if (k) { paintAll(); buildTimeline(); }
-  else { fit(); buildChips(); buildTimeline(); list().forEach(paint); applyVisualsToFrame(); }
+  if (k) {
+    paintAll();
+    buildTimeline();
+  } else {
+    fit();
+    buildChips();
+    buildTimeline();
+    list().forEach(paint);
+    applyVisualsToFrame();
+  }
 }
 addEventListener("resize", () => mode !== "kartu" && fit());
 
@@ -571,7 +595,7 @@ if (avInput) {
       localStorage.setItem("alcrazhyCommunity", JSON.stringify(saved));
       loadProfile();
       avInput.value = "";
-      alert("Avatar diperbarui! Klik Simpan untuk commit ke GitHub.");
+      alert("Avatar diperbarui! Klik Simpan untuk menyimpan ke GitHub.");
     });
   });
 }
@@ -588,7 +612,7 @@ if (bnInput) {
       localStorage.setItem("alcrazhyCommunity", JSON.stringify(saved));
       loadProfile();
       bnInput.value = "";
-      alert("Banner diperbarui! Klik Simpan untuk commit ke GitHub.");
+      alert("Banner diperbarui! Klik Simpan untuk menyimpan ke GitHub.");
     });
   });
 }
@@ -617,31 +641,4 @@ if (resetBn) {
   });
 }
 
-const _setMode = setMode;
-setMode = function (m) {
-  _setMode(m);
-  const activeStage = m === "kartu" ? $("#stage") : $("#pstage");
-  if (activeStage) {
-    activeStage.style.opacity = "0";
-    activeStage.style.transform = "scale(0.98)";
-    activeStage.style.transition = "opacity 0.25s ease, transform 0.28s cubic-bezier(0.22, 1, 0.36, 1)";
-    requestAnimationFrame(() => {
-      activeStage.style.opacity = "1";
-      activeStage.style.transform = "scale(1)";
-    });
-  }
-};
-
-const _buildTimeline = buildTimeline;
-buildTimeline = function () {
-  _buildTimeline();
-  $("#tracks").querySelectorAll(".clip").forEach((el, idx) => {
-    el.style.opacity = "0";
-    el.style.transitionDelay = `${Math.min(idx, 10) * 25}ms`;
-    requestAnimationFrame(() => {
-      el.style.opacity = "1";
-    });
-  });
-};
-
-setMode("kartu");
+setMode("halaman");
