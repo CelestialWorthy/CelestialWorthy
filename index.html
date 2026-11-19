@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#090b10">
+  <title>Alcrazhy Community</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body id="mainBody">
+  
+  <!-- Topbar -->
+  <header class="topbar">
+  <div class="brand-mark">A<span>.</span></div>
+  <div class="top-actions">
+    <button type="button" class="icon-btn" id="searchToggle" title="Cari">⌕</button>
+    <a class="icon-btn" href="editor.html" title="Editor Tampilan" data-admin-only style="display:none">⚙</a>
+    <a class="icon-btn" href="tambah-konten.html" title="Tambah Konten" data-admin-only style="display:none">＋</a>
+    <button type="button" class="icon-btn" id="adminAuthBtn" title="Login Admin">🔑</button>
+  </div>
+</header>
+
+  <main class="page">
+    
+    <!-- Profil Card Komunitas -->
+    <section class="profile-card">
+      <div class="cover" id="coverImage">
+        <div class="cover-shade"></div>
+        <span class="cover-label">COMMUNITY SPACE</span>
+      </div>
+      <div class="profile-main">
+        <div class="avatar-wrap">
+          <img id="avatarImage" class="avatar" src="https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=300&h=300&fit=crop" alt="Avatar">
+          <span class="online-dot"></span>
+        </div>
+        <div class="profile-heading">
+          <div class="name-line">
+            <h1 id="communityName">Eternal Heaven</h1>
+          </div>
+          <p class="handle" id="communityHandle">@veyrath.halgion</p>
+        </div>
+        <p class="bio" id="communityBio">Marga Veyrath Halgion membawa beban tradisi ribuan tahun dan keagungan yang dingin...</p>
+        <div class="profile-buttons">
+          <a class="primary-btn" href="#konten">Lihat Konten</a>
+          <button type="button" class="secondary-btn" id="shareButton">Bagikan ↗</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Navigasi Tab -->
+    <nav class="tabs" aria-label="Navigasi komunitas">
+      <button type="button" class="tab active" data-tab="beranda">▦ <span>Beranda</span></button>
+      <button type="button" class="tab" data-tab="konten">♙ <span>List Konten</span></button>
+      <button type="button" class="tab" data-tab="media">▧ <span>Media</span></button>
+      <button type="button" class="tab" data-tab="tentang">ⓘ <span>Tentang</span></button>
+    </nav>
+
+    <!-- 1. Tab Beranda -->
+    <section class="content-section active" id="beranda">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">COMMUNITY FEED</p>
+          <h2>Pengumuman komunitas</h2>
+        </div>
+        <span class="muted" id="announcementCountLabel">Terbaru</span>
+      </div>
+      <div id="announcementFeed"></div>
+    </section>
+
+    <!-- 2. Tab List Konten -->
+    <section class="content-section" id="konten">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">CONTENTS</p>
+          <h2>List konten komunitas</h2>
+        </div>
+        <span class="muted" id="contentCountLabel">0 konten</span>
+      </div>
+      <div class="search-box">
+        <span>⌕</span>
+        <input id="contentSearch" type="search" placeholder="Cari konten...">
+      </div>
+      <div class="member-list" id="contentListContainer"></div>
+    </section>
+
+    <!-- 3. Tab Media Galeri -->
+    <section class="content-section" id="media">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">GALLERY</p>
+          <h2>Media komunitas</h2>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Tab Tentang -->
+    <section class="content-section" id="tentang">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">ABOUT US</p>
+          <h2>Tentang komunitas</h2>
+        </div>
+      </div>
+      <div class="about-card">
+        <h3 id="aboutName">Eternal Heaven</h3>
+        <p id="aboutBio">Marga Veyrath Halgion membawa beban tradisi ribuan tahun dan keagungan yang dingin...</p>
+        <div class="about-line"><span>Jenis</span><strong>Komunitas</strong></div>
+        <div class="about-line"><span>Platform</span><strong>Alcrazhy Web</strong></div>
+        <div class="about-line"><span>Status</span><strong class="green">● Aktif</strong></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+  <a class="bottom-item active" href="#beranda"><span>⌂</span>Beranda</a>
+  <a class="bottom-item" href="#konten"><span>♙</span>Konten</a>
+  <a class="create-button" href="profil.html" title="Profil Pribadi">
+    <img id="navProfileAvatar" src="https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=120&h=120&fit=crop" alt="Profil">
+  </a>
+  <a class="bottom-item" href="#media"><span>▧</span>Media</a>
+  <a class="bottom-item" href="#tentang"><span>ⓘ</span>About</a>
+</nav>
+
+
+  <!-- Modal Detail Konten Fullscreen -->
+  <div id="contentDetailModal" style="display: none; position: fixed; inset: 0; background: rgba(9, 11, 16, 0.98); z-index: 9999; overflow-y: auto; padding: 40px 20px;">
+    <div style="max-width: 800px; margin: 0 auto; position: relative;">
+      <button type="button" id="closeDetailBtn" style="background: #242a35; color: #e6eaf0; border: 1px solid #353c49; padding: 10px 18px; border-radius: 9px; cursor: pointer; font-weight: bold; float: right; margin-bottom: 20px;">Keluar [X]</button>
+      <div style="clear: both;"></div>
+      <div id="detailContentBody" style="background: #11151d; border: 1px solid #252b36; border-radius: 20px; padding: 30px;"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="script.js"></script>
+  <script src="tampilan.js"></script>
+  <script src="konten-render.js"></script>
+
+  <script type="module" src="firebase-auth.js"></script>
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+    const authBtn = document.getElementById("adminAuthBtn");
+    if (!authBtn) return;
+
+    function updateAuthBtn(user) {
+      authBtn.textContent = user ? "⎋" : "⌬";
+      authBtn.title = user ? "Logout Admin" : "Login Admin";
+    }
+
+    window.addEventListener("alcrazhy:auth-change", (e) => updateAuthBtn(e.detail?.user));
+
+    authBtn.addEventListener("click", async () => {
+      if (!window.AlcrazhyAuth) return;
+      if (window.AlcrazhyAuth.getAdminUser()) {
+        if (confirm("Keluar dari sesi admin?")) {
+          await window.AlcrazhyAuth.logoutAdmin();
+        }
+      } else {
+        await window.AlcrazhyAuth.openLoginModal();
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
