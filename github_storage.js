@@ -268,7 +268,7 @@ async function saveCommunityData(dataObj, commitMessage) {
 async function saveProfileData(profileObj, commitMessage) {
   localStorage.setItem("alcrazhyUserProfile", JSON.stringify(profileObj));
   const cfg = getGhConfig();
-  const targetPath = cfg.profilePath || "profiles/user-profile.json";
+  const targetPath = cfg.communityPath || "profiles/user-profile.json";
   return commitJsonToGitHub(targetPath, profileObj, commitMessage || "Update user profile");
 }
 
