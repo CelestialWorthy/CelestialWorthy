@@ -12,6 +12,7 @@
   <b class="ttl" id="pageModeTitle">Konten Baru</b>
   <button type="button" class="save" id="pub">Terbitkan</button>
 </header>
+
 <main class="page">
   <div class="dest-switch">
     <button type="button" class="dest-btn active" id="modeKonten">1. Konten</button>
@@ -26,9 +27,7 @@
       <option value="Panduan">
       <option value="Umum">
     </datalist>
-    <textarea id="desc" class="desc-auto" rows="3" placeholder="Tulis deskripsi atau link di sini..."></textarea>
-
-    <textarea id="desc" rows="2" placeholder="Deskripsi atau link (misal: https://youtube.com/...)"></textarea>
+    <textarea id="desc" class="desc-auto" rows="3" placeholder="Tulis deskripsi atau link (misal: https://youtube.com/...)"></textarea>
   </div>
 
   <div class="host" id="host"><div id="st"></div></div>
@@ -51,6 +50,7 @@
     <div id="files" class="files"></div>
   </section>
 </main>
+
 <nav class="tools">
   <button type="button" onclick="sheet('size')"><i>✥</i>Ukuran &amp; Posisi</button>
   <button type="button" onclick="sheet('color')"><i>💧</i>Warna &amp; Bentuk</button>
@@ -60,16 +60,17 @@
   <button type="button" onclick="dup()"><i>⧉</i>Duplikat</button>
   <button type="button" class="del" onclick="del()"><i>🗑</i>Hapus</button>
 </nav>
+
 <button type="button" class="fab" onclick="sheet('add')">＋</button>
 <div class="sheet" id="sheet"></div>
 <input type="file" id="fi" hidden>
+
 <script src="konten-render.js"></script>
 <script src="tambah-konten.js"></script>
 <script src="github_storage.js"></script>
 <script type="module" src="firebase-auth.js"></script>
 <script>
   window.addEventListener("DOMContentLoaded", async () => {
-    // Sembunyikan isi halaman sampai status login terverifikasi
     document.body.style.visibility = "hidden";
     const check = setInterval(async () => {
       if (!window.AlcrazhyAuth) return;
@@ -83,6 +84,5 @@
     }, 50);
   });
 </script>
-
 </body>
 </html>
