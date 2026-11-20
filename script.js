@@ -339,26 +339,48 @@ function openContentFullscreen(item) {
   body.appendChild(delBtn);
 }
 
-function deleteContent(id) {
+async function deleteContent(id) {
+  if (!window.AlcrazhyAuth || typeof window.AlcrazhyAuth.requireAdminLogin !== "function") {
+    alert("Modul firebase-auth.js belum dimuat.");
+    return;
+  }
+  const loggedIn = await window.AlcrazhyAuth.requireAdminLogin();
+  if (!loggedIn) {
+    alert("Aksi dibatalkan: harus login admin terlebih dahulu.");
+    return;
+  }
+
   if (!confirm("Hapus konten ini? Tindakan ini tidak bisa dibatalkan.")) return;
+
   data.contents = (data.contents || defaults.contents).filter(c => c.id !== id);
   data.announcements = (data.announcements || []).filter(c => c.id !== id);
+
   const saved = JSON.parse(localStorage.getItem(COMMUNITY_KEY) || "{}");
-  saved.contents = data.contents;
-  saved.announcements = data.announcements;
-  localStorage.setItem(COMMUNITY_KEY, JSON.stringify(saved));
-  document.getElementById("contentDetailModal").style.display = "none";
+  const nextData = {
+    ...saved,
+    ...data,
+    contents: data.contents,
+    announcements: data.announcements
+  };
+  localStorage.setItem(COMMUNITY_KEY, JSON.stringify(nextData));
+
+  if (window.AlcrazhyGitHub && typeof window.AlcrazhyGitHub.saveCommunityData === "function") {
+    try {
+      await window.AlcrazhyGitHub.saveCommunityData(nextData, `Hapus konten #${id}`);
+    } catch (err) {
+      alert(err.message || "Gagal menyinkronkan penghapusan ke GitHub.");
+    }
+  }
+
+  const modal = document.getElementById("contentDetailModal");
+  if (modal) modal.style.display = "none";
   renderAnnouncementFeed();
   const s = document.getElementById("contentSearch");
   renderContentList(s ? s.value.toLowerCase() : "");
+  renderMediaGallery();
+  showToast("Konten berhasil dihapus.");
 }
 
-const closeDetailBtn = document.getElementById("closeDetailBtn");
-if (closeDetailBtn) {
-  closeDetailBtn.addEventListener("click", () => {
-    document.getElementById("contentDetailModal").style.display = "none";
-  });
-}
 
 // Navigasi Tab
 const tabs = document.querySelectorAll(".tab");
