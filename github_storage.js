@@ -188,8 +188,10 @@ async function ensureGhReady() {
 }
 
 async function getFileSha(path, cfg, token) {
-  const url = `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${encodeURIComponent(path).replace(/%2F/g, "/")}?ref=${encodeURIComponent(cfg.branch)}`;
+  const cleanPath = encodeURIComponent(path).replace(/%2F/g, "/");
+  const url = `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${cleanPath}?ref=${encodeURIComponent(cfg.branch)}&_=${Date.now()}`;
   const res = await fetch(url, {
+    cache: "no-store",
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: "application/vnd.github+json"
@@ -204,7 +206,7 @@ async function getFileSha(path, cfg, token) {
   return data.sha || null;
 }
 
-async function commitJsonToGitHub(path, payload, message) {
+async function commitJsonToGitHub(path, payload, message, attempt = 0) {
   const ok = await ensureGhReady();
   if (!ok) {
     throw new Error("Konfigurasi GitHub dibatalkan.");
@@ -214,7 +216,8 @@ async function commitJsonToGitHub(path, payload, message) {
   const token = getGhToken();
   const sha = await getFileSha(path, cfg, token);
 
-  const url = `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${encodeURIComponent(path).replace(/%2F/g, "/")}`;
+  const cleanPath = encodeURIComponent(path).replace(/%2F/g, "/");
+  const url = `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${cleanPath}`;
   const body = {
     message: message || `Update ${path} via Alcrazhy Admin`,
     content: encodeBase64Utf8(JSON.stringify(payload, null, 2)),
@@ -224,6 +227,7 @@ async function commitJsonToGitHub(path, payload, message) {
 
   const res = await fetch(url, {
     method: "PUT",
+    cache: "no-store",
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: "application/vnd.github+json",
@@ -231,6 +235,10 @@ async function commitJsonToGitHub(path, payload, message) {
     },
     body: JSON.stringify(body)
   });
+
+  if (res.status === 409 && attempt < 2) {
+    return commitJsonToGitHub(path, payload, message, attempt + 1);
+  }
 
   if (!res.ok) {
     const errText = await res.text();
@@ -260,7 +268,8 @@ async function saveCommunityData(dataObj, commitMessage) {
 async function saveProfileData(profileObj, commitMessage) {
   localStorage.setItem("alcrazhyUserProfile", JSON.stringify(profileObj));
   const cfg = getGhConfig();
-  return commitJsonToGitHub(cfg.profilePath, profileObj, commitMessage || "Update user profile");
+  const targetPath = cfg.profilePath || "profiles/user-profile.json";
+  return commitJsonToGitHub(targetPath, profileObj, commitMessage || "Update user profile");
 }
 
 async function syncFromGitHub() {
