@@ -19,20 +19,6 @@
   "ui": {},
   "contents": [
     {
-      "id": 1795148841115,
-      "target": "konten",
-      "title": "P",
-      "category": "Umum",
-      "desc": "Konten visual",
-      "media": "",
-      "cw": 360,
-      "ch": 420,
-      "bg": "#0d0f14",
-      "blocks": [],
-      "files": [],
-      "folders": []
-    },
-    {
       "id": 1795145452425,
       "target": "konten",
       "title": "P",
