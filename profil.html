@@ -630,35 +630,57 @@
     })();
     
 $("btnSave").addEventListener("click", async () => {
-  await adminCommit(async () => {
-    profile = {
-      ...profile,
-      name: $("inpName").value.trim() || defaults.name,
-      handle: $("inpHandle").value.trim() || defaults.handle,
-      badge: $("inpBadge").value.trim() || defaults.badge,
-      status: $("inpStatus").value.trim() || defaults.status,
-      avatar: $("inpAvatar").value.trim(),
-      banner: $("inpBanner").value.trim(),
-      bio: $("inpBio").value.trim() || defaults.bio,
-      note: $("inpNote").value.trim() || defaults.note,
-      activity: $("inpActivity").value.trim() || defaults.activity,
-      wishlist: $("inpWishlist").value.trim() || defaults.wishlist
-    };
-    if (window.AlcrazhyGitHub) {
-      await window.AlcrazhyGitHub.saveProfileData(profile, "Update profil pribadi");
-    } else {
-      persist();
+  if (window.AlcrazhyAuth && typeof window.AlcrazhyAuth.requireAdminLogin === "function") {
+    const okLogin = await window.AlcrazhyAuth.requireAdminLogin();
+    if (!okLogin) {
+      showToast("Login admin dibatalkan.");
+      return;
     }
-    render();
+  }
+
+  profile = {
+    ...profile,
+    name: $("inpName").value.trim() || defaults.name,
+    handle: $("inpHandle").value.trim() || defaults.handle,
+    badge: $("inpBadge").value.trim() || defaults.badge,
+    status: $("inpStatus").value.trim() || defaults.status,
+    avatar: $("inpAvatar").value.trim(),
+    banner: $("inpBanner").value.trim(),
+    bio: $("inpBio").value.trim() || defaults.bio,
+    note: $("inpNote").value.trim() || defaults.note,
+    activity: $("inpActivity").value.trim() || defaults.activity,
+    wishlist: $("inpWishlist").value.trim() || defaults.wishlist
+  };
+
+  persist();
+  render();
+
+  if (window.AlcrazhyGitHub && typeof window.AlcrazhyGitHub.saveProfileData === "function") {
+    try {
+      await window.AlcrazhyGitHub.saveProfileData(profile, "Update profil pribadi");
+      $("editPanel").classList.remove("open");
+      showToast("Profil pribadi disimpan ke GitHub!");
+    } catch (err) {
+      console.error(err);
+      showToast("Gagal ke GitHub: " + (err?.message || err));
+    }
+  } else {
     $("editPanel").classList.remove("open");
-    showToast("Profil pribadi disimpan!");
-  });
+    showToast("Tersimpan lokal saja.");
+  }
 });
 
-  </script>
-  <script src="github_storage.js?v=8"></script>
+<script src="github_storage.js?v=10"></script>
+<script type="module" src="firebase-auth.js"></script>
 <script>
-  (async () => {
+  window.addEventListener("alcrazhy:auth-change", (e) => {
+    if (!e.detail?.user) {
+      const panel = document.getElementById("editPanel");
+      if (panel) panel.classList.remove("open");
+    }
+  });
+
+  (async () => {8
     if (!window.AlcrazhyGitHub || typeof window.AlcrazhyGitHub.syncFromGitHub !== "function") return;
     try {
       const prevRaw = localStorage.getItem("alcrazhyUserProfile") || "";
@@ -666,17 +688,15 @@ $("btnSave").addEventListener("click", async () => {
       if (res && res.profile && typeof res.profile === "object") {
         const nextRaw = JSON.stringify(res.profile);
         localStorage.setItem("alcrazhyUserProfile", nextRaw);
-        if (prevRaw !== nextRaw && !sessionStorage.getItem("alcrazhy_profile_synced")) {
-          sessionStorage.setItem("alcrazhy_profile_synced", "1");
+        if (prevRaw !== nextRaw) {
           location.reload();
-        }
+        }7
       }
     } catch (_) {}
   })();
 </script>
-
   <script type="module" src="firebase-auth.js"></script>
-<script>
+  <script>
   window.addEventListener("alcrazhy:auth-change", (e) => {
     if (!e.detail?.user) {
       const panel = document.getElementById("editPanel");
