@@ -332,12 +332,20 @@ function openContentFullscreen(item) {
     renderKonten(host, item);
   }
 
-  const delBtn = document.createElement("button");
-  delBtn.textContent = "🗑 Hapus konten";
-  delBtn.style.cssText = "margin-top:20px;width:100%;padding:12px;background:#2a1517;color:#ef4444;border:1px solid #5a2222;border-radius:10px;font:600 14px 'DM Sans',sans-serif;cursor:pointer";
-  delBtn.addEventListener("click", () => deleteContent(item.id));
-  body.appendChild(delBtn);
-}
+  // <-- TARUH DI SINI (di dalam openContentFullscreen, sebelum kurung tutup })
+  const isAdmin = Boolean(
+    window.AlcrazhyAuth &&
+    typeof window.AlcrazhyAuth.getAdminUser === "function" &&
+    window.AlcrazhyAuth.getAdminUser()
+  );
+  if (isAdmin) {
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "🗑 Hapus konten";
+    delBtn.style.cssText = "margin-top:20px;width:100%;padding:12px;background:#2a1517;color:#ef4444;border:1px solid #5a2222;border-radius:10px;font:600 14px 'DM Sans',sans-serif;cursor:pointer";
+    delBtn.addEventListener("click", () => deleteContent(item.id));
+    body.appendChild(delBtn);
+  }
+} // <-- penutup openContentFullscreen(item)
 
 async function deleteContent(id) {
   if (!window.AlcrazhyAuth || typeof window.AlcrazhyAuth.requireAdminLogin !== "function") {
