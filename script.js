@@ -520,6 +520,13 @@ window.addEventListener("storage", (e) => {
   }
 });
 
+document.addEventListener("click", (e) => {
+  const closeBtn = e.target.closest("#closeDetailBtn");
+  if (!closeBtn) return;
+  const modal = document.getElementById("contentDetailModal");
+  if (modal) modal.style.display = "none";
+});
+
 applyProfileVisuals();
 animateCommunityItems();
 renderAnnouncementFeed();
