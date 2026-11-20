@@ -267,24 +267,68 @@ async function saveCommunityData(dataObj, commitMessage) {
 
 async function saveProfileData(profileObj, commitMessage) {
   localStorage.setItem("alcrazhyUserProfile", JSON.stringify(profileObj));
+
   const cfg = getGhConfig();
-  const targetPath = cfg.communityPath || "profiles/user-profile.json";
-  return commitJsonToGitHub(targetPath, profileObj, commitMessage || "Update user profile");
+  const targetPath = cfg.communityPath || "data/community.json";
+
+  let existingCommunity = {};
+  try {
+    if (typeof fetchJsonFromGitHub === "function") {
+      const remote = await fetchJsonFromGitHub(targetPath);
+      if (remote && typeof remote === "object") {
+        existingCommunity = remote;
+      }
+    }
+  } catch (_) {}
+
+  if (!Object.keys(existingCommunity).length) {
+    try {
+      const localComm = JSON.parse(localStorage.getItem("alcrazhyCommunity") || "{}");
+      if (localComm && typeof localComm === "object") {
+        existingCommunity = localComm;
+      }
+    } catch (_) {}
+  }
+
+  const nextCommunityPayload = {
+    ...existingCommunity,
+    profile: profileObj
+  };
+
+  localStorage.setItem("alcrazhyCommunity", JSON.stringify(nextCommunityPayload));
+
+  return commitJsonToGitHub(
+    targetPath,
+    nextCommunityPayload,
+    commitMessage || "Update user profile"
+  );
 }
 
 async function syncFromGitHub() {
   const cfg = getGhConfig();
-  const [ghComm, ghProf] = await Promise.all([
-    fetchJsonFromGitHub(cfg.communityPath),
-    fetchJsonFromGitHub(cfg.profilePath)
-  ]);
+  const ghComm = await fetchJsonFromGitHub(cfg.communityPath);
 
+  let ghProf = null;
   if (ghComm && typeof ghComm === "object") {
     localStorage.setItem("alcrazhyCommunity", JSON.stringify(ghComm));
+    if (ghComm.profile && typeof ghComm.profile === "object") {
+      ghProf = ghComm.profile;
+    }
   }
+
+  if (!ghProf && cfg.profilePath) {
+    try {
+      const fetchedProf = await fetchJsonFromGitHub(cfg.profilePath);
+      if (fetchedProf && typeof fetchedProf === "object") {
+        ghProf = fetchedProf;
+      }
+    } catch (_) {}
+  }
+
   if (ghProf && typeof ghProf === "object") {
     localStorage.setItem("alcrazhyUserProfile", JSON.stringify(ghProf));
   }
+
   return { community: ghComm, profile: ghProf };
 }
 
