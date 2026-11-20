@@ -19,20 +19,6 @@
   "ui": {},
   "contents": [
     {
-      "id": 1795145452425,
-      "target": "konten",
-      "title": "P",
-      "category": "Umum",
-      "desc": "Konten visual",
-      "media": "",
-      "cw": 360,
-      "ch": 420,
-      "bg": "#0d0f14",
-      "blocks": [],
-      "files": [],
-      "folders": []
-    },
-    {
       "id": 1795081728381,
       "target": "konten",
       "title": "P",
@@ -91,5 +77,30 @@
     "note": "...",
     "activity": "Rebahan wae males aku",
     "wishlist": "Pengen h2r"
-  }
+  },
+  "name": "Alcrazhy Community",
+  "handle": "@alcrazhy.community",
+  "bio": "Tempat berkumpul, berbagi cerita, dan membangun sesuatu bersama.",
+  "mediaList": [
+    {
+      "id": 1,
+      "text": "AETHER\nNOX",
+      "bg": "linear-gradient(140deg,#121b32,#8c405e)"
+    },
+    {
+      "id": 2,
+      "text": "✦",
+      "bg": "radial-gradient(circle,#a95b84,#29213e)"
+    },
+    {
+      "id": 3,
+      "text": "COMMUNITY",
+      "bg": "linear-gradient(135deg,#2a3451,#141820)"
+    },
+    {
+      "id": 4,
+      "text": "✧",
+      "bg": "linear-gradient(140deg,#9a7650,#292039)"
+    }
+  ]
 }
