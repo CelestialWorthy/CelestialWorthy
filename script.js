@@ -88,7 +88,6 @@ function applyProfileVisuals() {
   if (aboutNameEl) aboutNameEl.textContent = data.name;
   if (aboutBioEl) aboutBioEl.innerHTML = formatClickableText(data.bio);
 
-  // 1. Avatar & Banner Halaman Utama Komunitas (hanya dari alcrazhyCommunity)
   const communityAvatar = data.avatar || DEFAULT_AVATAR;
   if (avatarEl) avatarEl.src = communityAvatar;
 
@@ -102,17 +101,31 @@ function applyProfileVisuals() {
     }
   }
 
-  // 2. Ikon Profil Pribadi di Menu Bawah (dari alcrazhyUserProfile)
   if (navAvatarEl) {
     navAvatarEl.src = userProf.avatar || DEFAULT_AVATAR;
   }
 
-  // 3. Terapkan customisasi tata letak & teks dari editor (jika ada)
   if (typeof window.applyUI === "function" && data.ui) {
     try {
       window.applyUI(document, data.ui);
     } catch (e) {}
   }
+}
+
+// Animasi bertahap untuk kartu pengumuman, list konten, media & about
+function animateCommunityItems() {
+  const targets = document.querySelectorAll(
+    "#announcementFeed .post-card, #contentListContainer .member-row, #mediaGridContainer .media-tile, #tentang .about-card"
+  );
+  targets.forEach((el, i) => {
+    el.classList.remove("ac-show");
+    el.style.setProperty("--ac-delay", `${Math.min(i, 8) * 55}ms`);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        el.classList.add("ac-show");
+      });
+    });
+  });
 }
 
 // Render Feed Pengumuman di Tab Beranda
@@ -130,6 +143,7 @@ function renderAnnouncementFeed() {
 
   if (announcements.length === 0) {
     feed.innerHTML = `<article class="post-card"><p class="post-text" style="margin:0;color:var(--muted)">Belum ada pengumuman. Buat konten dengan kategori <b>Pengumuman</b> atau pilih opsi <b>2. Beranda</b> di halaman Tambah Konten.</p></article>`;
+    animateCommunityItems();
     return;
   }
 
@@ -161,6 +175,8 @@ function renderAnnouncementFeed() {
     card.addEventListener("click", () => openContentFullscreen(item));
     feed.appendChild(card);
   });
+
+  animateCommunityItems();
 }
 
 // Render List Konten
@@ -179,6 +195,7 @@ function renderContentList(filter = "") {
 
   if (filtered.length === 0) {
     container.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--muted);">Belum ada konten ditemukan.</div>`;
+    animateCommunityItems();
     return;
   }
 
@@ -217,6 +234,8 @@ function renderContentList(filter = "") {
     });
     container.appendChild(row);
   });
+
+  animateCommunityItems();
 }
 
 // Render Galeri Media (Arsip Gambar)
@@ -272,6 +291,7 @@ function renderMediaGallery() {
 
   if (!archivedImages.length) {
     grid.innerHTML = `<div style="grid-column:1/-1;padding:20px;text-align:center;color:var(--muted);">Belum ada gambar di arsip.</div>`;
+    animateCommunityItems();
     return;
   }
 
@@ -309,6 +329,8 @@ function renderMediaGallery() {
 
     grid.appendChild(tile);
   });
+
+  animateCommunityItems();
 }
 
 // Modal Detail Konten
@@ -332,7 +354,6 @@ function openContentFullscreen(item) {
     renderKonten(host, item);
   }
 
-  // <-- TARUH DI SINI (di dalam openContentFullscreen, sebelum kurung tutup })
   const isAdmin = Boolean(
     window.AlcrazhyAuth &&
     typeof window.AlcrazhyAuth.getAdminUser === "function" &&
@@ -345,7 +366,7 @@ function openContentFullscreen(item) {
     delBtn.addEventListener("click", () => deleteContent(item.id));
     body.appendChild(delBtn);
   }
-} // <-- penutup openContentFullscreen(item)
+}
 
 async function deleteContent(id) {
   if (!window.AlcrazhyAuth || typeof window.AlcrazhyAuth.requireAdminLogin !== "function") {
@@ -389,7 +410,6 @@ async function deleteContent(id) {
   showToast("Konten berhasil dihapus.");
 }
 
-
 // Navigasi Tab
 const tabs = document.querySelectorAll(".tab");
 tabs.forEach(tab => tab.addEventListener("click", () => {
@@ -398,6 +418,7 @@ tabs.forEach(tab => tab.addEventListener("click", () => {
   document.querySelectorAll(".content-section").forEach(s => s.classList.remove("active"));
   const targetSec = document.getElementById(tab.dataset.tab);
   if (targetSec) targetSec.classList.add("active");
+  setTimeout(animateCommunityItems, 20);
 }));
 
 // Navigasi Bottom Menu
@@ -408,6 +429,7 @@ document.querySelectorAll(".bottom-item").forEach(link => link.addEventListener(
   const id = link.getAttribute("href").slice(1);
   tabs.forEach(t => t.classList.toggle("active", t.dataset.tab === id));
   document.querySelectorAll(".content-section").forEach(s => s.classList.toggle("active", s.id === id));
+  setTimeout(animateCommunityItems, 20);
 }));
 
 const search = document.getElementById("contentSearch");
@@ -444,48 +466,6 @@ function showToast(message) {
   setTimeout(() => t.classList.remove("show"), 2200);
 }
 
-// Animasi bertahap untuk kartu pengumuman, list konten, media & about
-function animateCommunityItems() {
-  const targets = document.querySelectorAll(
-    "#announcementFeed .post-card, #contentListContainer .member-row, #mediaGridContainer .media-tile, #tentang .about-card"
-  );
-  targets.forEach((el, i) => {
-    el.classList.remove("ac-show");
-    el.style.setProperty("--ac-delay", `${Math.min(i, 8) * 55}ms`);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        el.classList.add("ac-show");
-      });
-    });
-  });
-}
-
-const _renderAnnouncementFeed = renderAnnouncementFeed;
-renderAnnouncementFeed = function () {
-  _renderAnnouncementFeed();
-  animateCommunityItems();
-};
-
-const _renderContentList = renderContentList;
-renderContentList = function (filter = "") {
-  _renderContentList(filter);
-  animateCommunityItems();
-};
-
-const _renderMediaGallery = renderMediaGallery;
-renderMediaGallery = function () {
-  _renderMediaGallery();
-  animateCommunityItems();
-};
-
-tabs.forEach((tab) => {
-  tab.addEventListener("click", () => setTimeout(animateCommunityItems, 20));
-});
-
-document.querySelectorAll(".bottom-item").forEach((link) => {
-  link.addEventListener("click", () => setTimeout(animateCommunityItems, 20));
-});
-
 // Sinkronisasi data terbaru dari GitHub tanpa menimpa data lokal jika GitHub kosong
 async function syncFromRemoteGitHub() {
   if (!window.AlcrazhyGitHub || typeof window.AlcrazhyGitHub.syncFromGitHub !== "function") {
@@ -510,13 +490,16 @@ async function syncFromRemoteGitHub() {
 
   applyProfileVisuals();
   renderAnnouncementFeed();
-  renderContentList();
+  renderContentList(search ? search.value.toLowerCase() : "");
   renderMediaGallery();
 }
 
 window.addEventListener("storage", (e) => {
   if (e.key === COMMUNITY_KEY || e.key === USER_PROFILE_KEY) {
     applyProfileVisuals();
+    renderAnnouncementFeed();
+    renderContentList(search ? search.value.toLowerCase() : "");
+    renderMediaGallery();
   }
 });
 
@@ -528,7 +511,6 @@ document.addEventListener("click", (e) => {
 });
 
 applyProfileVisuals();
-animateCommunityItems();
 renderAnnouncementFeed();
 renderContentList();
 renderMediaGallery();
