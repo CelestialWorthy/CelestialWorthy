@@ -17,12 +17,13 @@ const defaults = {
   ]
 };
 
+const COMMUNITY_KEY = "alcrazhyCommunity";
 const USER_PROFILE_KEY = "alcrazhyUserProfile";
 const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=300&h=300&fit=crop";
 
 function getCommunity() {
   try {
-    return { ...defaults, ...JSON.parse(localStorage.getItem("alcrazhyCommunity") || "{}") };
+    return { ...defaults, ...JSON.parse(localStorage.getItem(COMMUNITY_KEY) || "{}") };
   } catch (e) {
     return { ...defaults };
   }
@@ -66,6 +67,7 @@ function formatClickableText(raw) {
   return out.replace(/\n/g, "<br>");
 }
 
+// Terapkan profil komunitas & profil pribadi secara terpisah
 function applyProfileVisuals() {
   const fresh = getCommunity();
   Object.assign(data, fresh);
@@ -86,23 +88,34 @@ function applyProfileVisuals() {
   if (aboutNameEl) aboutNameEl.textContent = data.name;
   if (aboutBioEl) aboutBioEl.innerHTML = formatClickableText(data.bio);
 
-  const avatarSrc = data.avatar || userProf.avatar || DEFAULT_AVATAR;
-  const bannerSrc = data.banner || userProf.banner || "";
-
-  if (avatarEl) avatarEl.src = avatarSrc;
-  if (navAvatarEl) navAvatarEl.src = avatarSrc;
+  // 1. Avatar & Banner Halaman Utama Komunitas (hanya dari alcrazhyCommunity)
+  const communityAvatar = data.avatar || DEFAULT_AVATAR;
+  if (avatarEl) avatarEl.src = communityAvatar;
 
   if (coverEl) {
-    if (bannerSrc) {
-      coverEl.style.backgroundImage = `url("${String(bannerSrc).replace(/"/g, "&quot;")}")`;
+    if (data.banner) {
+      coverEl.style.backgroundImage = `url("${String(data.banner).replace(/"/g, "&quot;")}")`;
       coverEl.style.backgroundSize = "cover";
       coverEl.style.backgroundPosition = "center";
     } else {
       coverEl.style.backgroundImage = "";
     }
   }
+
+  // 2. Ikon Profil Pribadi di Menu Bawah (dari alcrazhyUserProfile)
+  if (navAvatarEl) {
+    navAvatarEl.src = userProf.avatar || DEFAULT_AVATAR;
+  }
+
+  // 3. Terapkan customisasi tata letak & teks dari editor (jika ada)
+  if (typeof window.applyUI === "function" && data.ui) {
+    try {
+      window.applyUI(document, data.ui);
+    } catch (e) {}
+  }
 }
 
+// Render Feed Pengumuman di Tab Beranda
 function renderAnnouncementFeed() {
   const feed = document.getElementById("announcementFeed");
   if (!feed) return;
@@ -150,6 +163,7 @@ function renderAnnouncementFeed() {
   });
 }
 
+// Render List Konten
 function renderContentList(filter = "") {
   const container = document.getElementById("contentListContainer");
   if (!container) return;
@@ -205,6 +219,7 @@ function renderContentList(filter = "") {
   });
 }
 
+// Render Galeri Media (Arsip Gambar)
 function renderMediaGallery() {
   const grid = document.getElementById("mediaGridContainer");
   if (!grid) return;
@@ -296,6 +311,7 @@ function renderMediaGallery() {
   });
 }
 
+// Modal Detail Konten
 function openContentFullscreen(item) {
   const modal = document.getElementById("contentDetailModal");
   const body = document.getElementById("detailContentBody");
@@ -327,28 +343,34 @@ function deleteContent(id) {
   if (!confirm("Hapus konten ini? Tindakan ini tidak bisa dibatalkan.")) return;
   data.contents = (data.contents || defaults.contents).filter(c => c.id !== id);
   data.announcements = (data.announcements || []).filter(c => c.id !== id);
-  const saved = JSON.parse(localStorage.getItem("alcrazhyCommunity") || "{}");
+  const saved = JSON.parse(localStorage.getItem(COMMUNITY_KEY) || "{}");
   saved.contents = data.contents;
   saved.announcements = data.announcements;
-  localStorage.setItem("alcrazhyCommunity", JSON.stringify(saved));
+  localStorage.setItem(COMMUNITY_KEY, JSON.stringify(saved));
   document.getElementById("contentDetailModal").style.display = "none";
   renderAnnouncementFeed();
   const s = document.getElementById("contentSearch");
   renderContentList(s ? s.value.toLowerCase() : "");
 }
 
-document.getElementById("closeDetailBtn").addEventListener("click", () => {
-  document.getElementById("contentDetailModal").style.display = "none";
-});
+const closeDetailBtn = document.getElementById("closeDetailBtn");
+if (closeDetailBtn) {
+  closeDetailBtn.addEventListener("click", () => {
+    document.getElementById("contentDetailModal").style.display = "none";
+  });
+}
 
+// Navigasi Tab
 const tabs = document.querySelectorAll(".tab");
 tabs.forEach(tab => tab.addEventListener("click", () => {
   tabs.forEach(t => t.classList.remove("active"));
   tab.classList.add("active");
   document.querySelectorAll(".content-section").forEach(s => s.classList.remove("active"));
-  document.getElementById(tab.dataset.tab).classList.add("active");
+  const targetSec = document.getElementById(tab.dataset.tab);
+  if (targetSec) targetSec.classList.add("active");
 }));
 
+// Navigasi Bottom Menu
 document.querySelectorAll(".bottom-item").forEach(link => link.addEventListener("click", (e) => {
   e.preventDefault();
   document.querySelectorAll(".bottom-item").forEach(x => x.classList.remove("active"));
@@ -363,19 +385,26 @@ if (search) {
   search.addEventListener("input", (e) => renderContentList(e.target.value.toLowerCase()));
 }
 
-document.getElementById("shareButton").addEventListener("click", async () => {
-  try {
-    await navigator.clipboard.writeText(location.href);
-    showToast("Tautan komunitas disalin!");
-  } catch (e) {
-    showToast("Bagikan tautan halaman ini dari browser.");
-  }
-});
+const shareBtn = document.getElementById("shareButton");
+if (shareBtn) {
+  shareBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(location.href);
+      showToast("Tautan komunitas disalin!");
+    } catch (e) {
+      showToast("Bagikan tautan halaman ini dari browser.");
+    }
+  });
+}
 
-document.getElementById("searchToggle").addEventListener("click", () => {
-  document.querySelector(".tabs").scrollIntoView({ behavior: "smooth" });
-  showToast("Gunakan tab List Konten untuk mencari.");
-});
+const searchToggle = document.getElementById("searchToggle");
+if (searchToggle) {
+  searchToggle.addEventListener("click", () => {
+    const tabsEl = document.querySelector(".tabs");
+    if (tabsEl) tabsEl.scrollIntoView({ behavior: "smooth" });
+    showToast("Gunakan tab List Konten untuk mencari.");
+  });
+}
 
 function showToast(message) {
   const t = document.getElementById("toast");
@@ -385,6 +414,7 @@ function showToast(message) {
   setTimeout(() => t.classList.remove("show"), 2200);
 }
 
+// Animasi bertahap untuk kartu pengumuman, list konten, media & about
 function animateCommunityItems() {
   const targets = document.querySelectorAll(
     "#announcementFeed .post-card, #contentListContainer .member-row, #mediaGridContainer .media-tile, #tentang .about-card"
@@ -426,40 +456,36 @@ document.querySelectorAll(".bottom-item").forEach((link) => {
   link.addEventListener("click", () => setTimeout(animateCommunityItems, 20));
 });
 
+// Sinkronisasi data terbaru dari GitHub tanpa menimpa data lokal jika GitHub kosong
 async function syncFromRemoteGitHub() {
   if (!window.AlcrazhyGitHub || typeof window.AlcrazhyGitHub.syncFromGitHub !== "function") {
-    applyProfileVisuals();
     return;
   }
   try {
     const remote = await window.AlcrazhyGitHub.syncFromGitHub();
     if (remote && remote.community && typeof remote.community === "object") {
-      const cur = JSON.parse(localStorage.getItem("alcrazhyCommunity") || "{}");
-      const merged = { ...cur, ...remote.community };
-      localStorage.setItem("alcrazhyCommunity", JSON.stringify(merged));
-      Object.assign(data, merged);
+      const curComm = JSON.parse(localStorage.getItem(COMMUNITY_KEY) || "{}");
+      const mergedComm = { ...curComm, ...remote.community };
+      localStorage.setItem(COMMUNITY_KEY, JSON.stringify(mergedComm));
+      Object.assign(data, mergedComm);
     }
     if (remote && remote.profile && typeof remote.profile === "object") {
       const curProf = getUserProfile();
-      localStorage.setItem(USER_PROFILE_KEY, JSON.stringify({ ...curProf, ...remote.profile }));
+      const mergedProf = { ...curProf, ...remote.profile };
+      localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(mergedProf));
     }
   } catch (e) {
     console.warn("Sinkronisasi GitHub gagal:", e);
   }
+
   applyProfileVisuals();
-  if (typeof window.applyUI === "function") {
-    try {
-      window.applyUI(document, getCommunity().ui);
-    } catch (e) {}
-  }
   renderAnnouncementFeed();
   renderContentList();
   renderMediaGallery();
 }
 
-
 window.addEventListener("storage", (e) => {
-  if (e.key === "alcrazhyCommunity" || e.key === USER_PROFILE_KEY) {
+  if (e.key === COMMUNITY_KEY || e.key === USER_PROFILE_KEY) {
     applyProfileVisuals();
   }
 });
