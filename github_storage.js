@@ -252,11 +252,30 @@ async function fetchJsonFromGitHub(path) {
   if (!cfg.owner || !cfg.repo || cfg.owner.startsWith("ISI_") || cfg.repo.startsWith("ISI_")) {
     return null;
   }
-  const rawUrl = `https://raw.githubusercontent.com/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/${encodeURIComponent(cfg.branch)}/${encodeURIComponent(path).replace(/%2F/g, "/")}?t=${Date.now()}`;
-  const res = await fetch(rawUrl);
-  if (res.status === 404) return null;
-  if (!res.ok) return null;
-  return res.json();
+
+  const cleanPath = encodeURIComponent(path).replace(/%2F/g, "/");
+  const owner = encodeURIComponent(cfg.owner);
+  const repo = encodeURIComponent(cfg.repo);
+  const branch = encodeURIComponent(cfg.branch);
+  const cacheBust = Date.now();
+
+  const candidateUrls = [
+    `https://raw.githubusercontent.com/${owner}/${repo}/refs/heads/${branch}/${cleanPath}?t=${cacheBust}`,
+    `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${cleanPath}?t=${cacheBust}`
+  ];
+
+  for (const rawUrl of candidateUrls) {
+    try {
+      const res = await fetch(rawUrl);
+      if (res.status === 404) continue;
+      if (!res.ok) continue;
+      return await res.json();
+    } catch (err) {
+      continue;
+    }
+  }
+
+  return null;
 }
 
 async function saveCommunityData(dataObj, commitMessage) {
