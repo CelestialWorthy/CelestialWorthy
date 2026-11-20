@@ -656,7 +656,25 @@ $("btnSave").addEventListener("click", async () => {
 });
 
   </script>
-  <script src="github_storage.js"></script>
+  <script src="github_storage.js?v=8"></script>
+<script>
+  (async () => {
+    if (!window.AlcrazhyGitHub || typeof window.AlcrazhyGitHub.syncFromGitHub !== "function") return;
+    try {
+      const prevRaw = localStorage.getItem("alcrazhyUserProfile") || "";
+      const res = await window.AlcrazhyGitHub.syncFromGitHub();
+      if (res && res.profile && typeof res.profile === "object") {
+        const nextRaw = JSON.stringify(res.profile);
+        localStorage.setItem("alcrazhyUserProfile", nextRaw);
+        if (prevRaw !== nextRaw && !sessionStorage.getItem("alcrazhy_profile_synced")) {
+          sessionStorage.setItem("alcrazhy_profile_synced", "1");
+          location.reload();
+        }
+      }
+    } catch (_) {}
+  })();
+</script>
+
   <script type="module" src="firebase-auth.js"></script>
 <script>
   window.addEventListener("alcrazhy:auth-change", (e) => {
