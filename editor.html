@@ -6,73 +6,99 @@
 <meta name="theme-color" content="#0b0d12">
 <title>Studio Editor - Alcrazhy</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="editor.css?v=5">
+<link rel="stylesheet" href="editor.css">
 </head>
 <body>
 <header class="top">
   <a href="index.html" class="ib">←</a>
-  <div class="ttl">Editor Halaman Utama</div>
-  <button type="button" class="save" onclick="saveProject()">Simpan</button>
+  <div class="seg">
+    <button type="button" id="mK" class="on">Kartu</button>
+    <button type="button" id="mH">Halaman Utama</button>
+  </div>
+  <button type="button" class="save" id="saveEditorBtn">Simpan</button>
 </header>
 
 <section class="edit-panel">
   <div class="edit-group">
-    <label for="editAvatarFile">Avatar Komunitas</label>
-    <input type="file" id="editAvatarFile" accept="image/png,image/jpeg">
+    <label for="editAvatarFile">Avatar Komunitas (media/)</label>
+    <input type="file" id="editAvatarFile" accept="image/png,image/jpeg,image/webp">
     <button type="button" id="resetAvatarBtn">Hapus Avatar</button>
   </div>
   <div class="edit-group">
-    <label for="editBannerFile">Banner Komunitas</label>
-    <input type="file" id="editBannerFile" accept="image/png,image/jpeg">
+    <label for="editBannerFile">Banner Komunitas (media/)</label>
+    <input type="file" id="editBannerFile" accept="image/png,image/jpeg,image/webp">
     <button type="button" id="resetBannerBtn">Hapus Banner</button>
   </div>
 </section>
 
 <main class="viewport">
-  <div class="stage pg" id="pstage">
-    <div id="fw"><iframe id="frame" src="index.html?v=5"></iframe></div>
+  <div class="stage" id="stage">
+    <div class="card lyr" id="profile" data-id="profile">
+      <div class="banner" id="pBanner"></div>
+      <div class="pmain">
+        <img id="pAvatar" alt="">
+        <h2 id="pName"></h2>
+        <p id="pHandle"></p>
+        <p id="pBio" class="bio"></p>
+      </div>
+    </div>
+  </div>
+  <div class="stage pg" id="pstage" style="display:none">
+    <div id="fw"><iframe id="frame" src="index.html"></iframe></div>
   </div>
 </main>
 
-<div class="chips" id="chips"></div>
+<div class="play">
+  <button type="button" class="pbtn" id="playBtn">▶</button>
+  <span class="time"><b id="tNow">0:00.0</b> / <span id="tTot">0:10.0</span></span>
+  <span class="cnt" id="cnt"></span>
+</div>
 
+<div class="chips" id="chips" style="display:none"></div>
 <section class="tl" id="tl">
   <div class="tlin" id="tlin">
+    <div class="ruler" id="ruler"></div>
     <div class="tracks" id="tracks"></div>
+    <div class="head" id="head"></div>
   </div>
 </section>
 
 <nav class="tools" id="tools">
-  <button type="button" onclick="sheet('move')"><i>✥</i>Move &amp; Transform</button>
-  <button type="button" onclick="sheet('fill')"><i>💧</i>Color &amp; Fill</button>
-  <button type="button" onclick="sheet('border')"><i>▢</i>Border &amp; Bayangan</button>
-  <button type="button" onclick="sheet('blend')"><i>▧</i>Blending &amp; Opacity</button>
-  <button type="button" onclick="sheet('edit')"><i>✏️</i>Edit Konten</button>
-  <button type="button" id="bDup" onclick="resetSelectedUI()"><i>↺</i>Reset</button>
-  <button type="button" id="bDel" class="del" onclick="toggleHideUI()"><i>🚫</i>Sembunyikan</button>
+  <button type="button" data-sheet="move"><i>✥</i>Move &amp; Transform</button>
+  <button type="button" data-sheet="fill"><i>💧</i>Color &amp; Fill</button>
+  <button type="button" data-sheet="border"><i>▢</i>Border &amp; Bayangan</button>
+  <button type="button" data-sheet="blend"><i>▧</i>Blending &amp; Opacity</button>
+  <button type="button" data-sheet="edit"><i>✏️</i>Edit Konten</button>
+  <button type="button" id="bDup"><i>⧉</i>Duplikat</button>
+  <button type="button" id="bDel" class="del"><i>🗑</i>Hapus</button>
 </nav>
 
+<button type="button" class="fab" id="fabAdd">＋</button>
 <div class="sheet" id="sheet"></div>
 <input type="file" id="file" accept="image/*" hidden>
 
-<script src="github_storage.js?v=5"></script>
-<script type="module" src="firebase-auth.js?v=5"></script>
-<script src="tampilan.js?v=5"></script>
-<script src="editor.js?v=5"></script>
-<script>
-  window.addEventListener("DOMContentLoaded", async () => {
-    document.body.style.visibility = "hidden";
-    const check = setInterval(async () => {
-      if (!window.AlcrazhyAuth) return;
-      clearInterval(check);
-      const ok = await window.AlcrazhyAuth.requireAdminLogin();
-      if (ok) {
-        document.body.style.visibility = "visible";
-      } else {
-        location.href = "index.html";
-      }
-    }, 50);
-  });
-</script>
+<div class="auth-gate" id="editorAuthGate">
+  <div class="auth-box">
+    <h3>Login Admin Editor</h3>
+    <p>Masuk dengan akun admin untuk mengedit tampilan, avatar, dan banner.</p>
+    <form id="editorAuthForm">
+      <div class="auth-field">
+        <label for="edAuthEmail">Email Admin</label>
+        <input type="email" id="edAuthEmail" required placeholder="admin@email.com">
+      </div>
+      <div class="auth-field">
+        <label for="edAuthPass">Kata Sandi</label>
+        <input type="password" id="edAuthPass" required placeholder="••••••••">
+      </div>
+      <div class="auth-actions">
+        <a href="index.html" class="auth-btn-cancel">Kembali</a>
+        <button type="submit" class="save" style="flex:1">Masuk</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="tampilan.js"></script>
+<script type="module" src="editor.js"></script>
 </body>
 </html>
