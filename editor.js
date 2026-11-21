@@ -727,35 +727,62 @@ $("#mK").addEventListener("click", () => setMode("kartu"));
 $("#mH").addEventListener("click", () => setMode("halaman"));
 addEventListener("resize", () => mode !== "kartu" && fit());
 
-$("#saveEditorBtn").addEventListener("click", async () => {
+function cleanUndefined(val) {
+  if (Array.isArray(val)) {
+    return val.map(cleanUndefined);
+  }
+  if (val && typeof val === "object") {
+    const out = {};
+    for (const [k, v] of Object.entries(val)) {
+      if (v !== undefined) out[k] = cleanUndefined(v);
+    }
+    return out;
+  }
+  return val === undefined ? null : val;
+}
+
+$("#saveEditorBtn")?.addEventListener("click", async () => {
   if (!(await promptEditorLogin())) return;
 
   const p = layers.find((x) => x.type === "profile") || layers[0];
   const fx = {};
-  Object.keys(B).forEach((k) => { fx[k] = p[k]; });
-  fx.fill = p.fill;
+  if (p) {
+    Object.keys(B).forEach((k) => {
+      fx[k] = p[k] ?? B[k];
+    });
+    fx.fill = p.fill || "";
+  }
 
   const savedUi = {};
   Object.values(ui).forEach((l) => {
     if (typeof window.uiDirty === "function" && window.uiDirty(l)) {
       const { orig, ...rest } = l;
-      savedUi[l.id] = rest;
+      savedUi[l.id] = cleanUndefined({
+        ...rest,
+        fill: rest.fill || "",
+        text: rest.text || "",
+        hide: Boolean(rest.hide)
+      });
     }
   });
 
+  const extraLayers = layers
+    .filter((x) => !p || x.id !== p.id)
+    .map((x) => cleanUndefined({ ...x, fill: x.fill || "", text: x.text || "" }));
+
   try {
-    await saveSettingDoc("home_profile", {
+    await saveSettingDoc("home_profile", cleanUndefined({
       name: D.name || "Eternal Heaven",
       handle: D.handle || "@veyrath.halgion",
       bio: D.bio || "",
       avatar: D.avatar || "",
       banner: D.banner || ""
-    });
-    await saveSettingDoc("home_ui", savedUi);
-    await saveSettingDoc("editor_studio", {
+    }));
+    await saveSettingDoc("home_ui", cleanUndefined(savedUi));
+    await saveSettingDoc("editor_studio", cleanUndefined({
       profileFx: fx,
-      layers: layers.filter((x) => x.id !== p.id)
-    });
+      layers: extraLayers
+    }));
     alert("Perubahan berhasil disimpan!");
     location.href = "index.html";
   } catch (err) {
