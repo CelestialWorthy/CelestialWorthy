@@ -45,34 +45,44 @@ function showToast(msg) {
 // TERAPKAN PENGATURAN HALAMAN UTAMA & UI
 // =========================================================
 async function applySiteHeaderAndUI() {
-  const siteCfg = await loadSettingDoc("home_profile", {
-    name: "Alcrazhy Community",
-    handle: "@alcrazhy.community",
-    bio: "Tempat berkumpul, berbagi cerita, dan membangun sesuatu bersama.",
-    avatar: "",
-    banner: ""
-  });
+  try {
+    const siteCfg = await loadSettingDoc("home_profile", {
+      name: "Alcrazhy Community",
+      handle: "@alcrazhy.community",
+      bio: "Tempat berkumpul, berbagi cerita, dan membangun sesuatu bersama.",
+      avatar: "",
+      banner: ""
+    });
 
-  if ($("#communityName")) $("#communityName").textContent = siteCfg.name || "Alcrazhy Community";
-  if ($("#communityHandle")) $("#communityHandle").textContent = siteCfg.handle || "@alcrazhy.community";
-  if ($("#communityBio")) $("#communityBio").innerHTML = formatText(siteCfg.bio || "");
-  if ($("#aboutName")) $("#aboutName").textContent = siteCfg.name || "Alcrazhy Community";
-  if ($("#aboutBio")) $("#aboutBio").innerHTML = formatText(siteCfg.bio || "");
+    if (siteCfg) {
+      if ($("#communityName")) $("#communityName").textContent = siteCfg.name || "Alcrazhy Community";
+      if ($("#communityHandle")) $("#communityHandle").textContent = siteCfg.handle || "@alcrazhy.community";
+      if ($("#communityBio")) $("#communityBio").innerHTML = formatText(siteCfg.bio || "");
+      if ($("#aboutName")) $("#aboutName").textContent = siteCfg.name || "Alcrazhy Community";
+      if ($("#aboutBio")) $("#aboutBio").innerHTML = formatText(siteCfg.bio || "");
 
-  if (siteCfg.avatar) {
-    if ($("#avatarImage")) $("#avatarImage").src = siteCfg.avatar;
-    if ($("#navProfileAvatar")) $("#navProfileAvatar").src = siteCfg.avatar;
-  } else if ($("#avatarImage")) {
-    $("#avatarImage").src = DEFAULT_AVATAR;
+      if (siteCfg.avatar) {
+        if ($("#avatarImage")) $("#avatarImage").src = siteCfg.avatar;
+        if ($("#navProfileAvatar")) $("#navProfileAvatar").src = siteCfg.avatar;
+      } else if ($("#avatarImage")) {
+        $("#avatarImage").src = DEFAULT_AVATAR;
+      }
+
+      if (siteCfg.banner && $("#coverImage")) {
+        $("#coverImage").style.backgroundImage = `url("${siteCfg.banner}")`;
+      }
+    }
+  } catch (err) {
+    console.warn("Gagal memuat profil beranda:", err);
   }
 
-  if (siteCfg.banner && $("#coverImage")) {
-    $("#coverImage").style.backgroundImage = `url("${siteCfg.banner}")`;
-  }
-
-  const uiDoc = await loadSettingDoc("home_ui", null);
-  if (uiDoc && typeof window.applyUI === "function") {
-    window.applyUI(document, uiDoc);
+  try {
+    const uiDoc = await loadSettingDoc("home_ui", null);
+    if (uiDoc && typeof window.applyUI === "function") {
+      window.applyUI(document, uiDoc);
+    }
+  } catch (err) {
+    console.warn("Gagal memuat UI beranda:", err);
   }
 }
 
@@ -335,93 +345,107 @@ function openItemModal(target, item) {
 }
 
 // =========================================================
-// NAVIGASI TAB, PENCARIAN & AUTH ADMIN
+// NAVIGASI TAB, TOMBOL, PENCARIAN & AUTH ADMIN
 // =========================================================
 function activateSection(tabName) {
+  if (!tabName) return;
   document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === tabName));
   document.querySelectorAll(".content-section").forEach((s) => s.classList.toggle("active", s.id === tabName));
-  document.querySelectorAll(".bottom-item").forEach((b) => b.classList.toggle("active", b.getAttribute("href") === "#" + tabName));
+  document.querySelectorAll(".bottom-item").forEach((b) => {
+    const href = b.getAttribute("href") || "";
+    b.classList.toggle("active", href === "#" + tabName);
+  });
 }
 
-document.querySelectorAll(".tab").forEach((tab) => {
-  tab.addEventListener("click", () => activateSection(tab.dataset.tab));
-});
+function initAllButtons() {
+  document.querySelectorAll(".tab").forEach((tab) => {
+    tab.addEventListener("click", (e) => {
+      e.preventDefault();
+      activateSection(tab.dataset.tab);
+    });
+  });
 
-document.querySelectorAll(".bottom-item").forEach((link) => {
-  link.addEventListener("click", (e) => {
-    const href = link.getAttribute("href") || "";
-    if (!href.startsWith("#")) return;
+  document.querySelectorAll(".bottom-item").forEach((link) => {
+    link.addEventListener("click", (e) => {
+      const href = link.getAttribute("href") || "";
+      if (!href.startsWith("#")) return;
+      e.preventDefault();
+      activateSection(href.slice(1));
+    });
+  });
+
+  $("#viewKontenBtn")?.addEventListener("click", (e) => {
     e.preventDefault();
-    activateSection(href.slice(1));
+    activateSection("konten");
   });
-});
 
-$("#closeDetailBtn")?.addEventListener("click", () => {
-  $("#contentDetailModal").style.display = "none";
-});
+  $("#closeDetailBtn")?.addEventListener("click", () => {
+    const modal = $("#contentDetailModal");
+    if (modal) modal.style.display = "none";
+  });
 
-$("#contentSearch")?.addEventListener("input", (e) => {
-  renderKontenList(e.target.value);
-});
+  $("#contentSearch")?.addEventListener("input", (e) => {
+    renderKontenList(e.target.value);
+  });
 
-$("#shareButton")?.addEventListener("click", async () => {
-  try {
-    await navigator.clipboard.writeText(location.href);
-    showToast("Tautan disalin!");
-  } catch {
-    showToast("Salin tautan dari alamat browser.");
-  }
-});
-
-$("#searchToggle")?.addEventListener("click", () => {
-  activateSection("konten");
-  $("#contentSearch")?.focus();
-});
-
-// Modal Login Admin
-const loginModal = $("#homeLoginModal");
-$("#adminAuthBtn")?.addEventListener("click", async () => {
-  if (isAdmin) {
-    if (confirm("Keluar dari sesi Admin?")) {
-      await logoutAdmin();
-      showToast("Logout berhasil.");
+  $("#shareButton")?.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(location.href);
+      showToast("Tautan disalin!");
+    } catch {
+      showToast("Salin tautan dari alamat browser.");
     }
-  } else {
-    loginModal?.classList.add("open");
-  }
-});
-
-$("#closeHomeLoginModal")?.addEventListener("click", () => {
-  loginModal?.classList.remove("open");
-});
-
-$("#homeLoginForm")?.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const email = $("#homeLoginEmail").value.trim();
-  const pass = $("#homeLoginPassword").value;
-  try {
-    await loginAdmin(email, pass);
-    loginModal.classList.remove("open");
-    $("#homeLoginForm").reset();
-    showToast("Login Admin aktif!");
-  } catch (err) {
-    showToast("Login gagal: " + err.message);
-  }
-});
-
-watchAdminAuth((admin) => {
-  isAdmin = admin;
-  document.querySelectorAll("[data-admin-only]").forEach((el) => {
-    el.style.display = admin ? "" : "none";
   });
-  const btn = $("#adminAuthBtn");
-  if (btn) {
-    btn.textContent = admin ? "⎋" : "🔑";
-    btn.title = admin ? "Logout Admin" : "Login Admin";
-  }
-});
 
-// Render awal dari lokal, lalu sinkronkan beranda & konten secara terpisah
+  $("#searchToggle")?.addEventListener("click", () => {
+    activateSection("konten");
+    $("#contentSearch")?.focus();
+  });
+
+  const loginModal = $("#homeLoginModal");
+  $("#adminAuthBtn")?.addEventListener("click", async () => {
+    if (isAdmin) {
+      if (confirm("Keluar dari sesi Admin?")) {
+        await logoutAdmin();
+        showToast("Logout berhasil.");
+      }
+    } else {
+      loginModal?.classList.add("open");
+    }
+  });
+
+  $("#closeHomeLoginModal")?.addEventListener("click", () => {
+    loginModal?.classList.remove("open");
+  });
+
+  $("#homeLoginForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = $("#homeLoginEmail")?.value.trim() || "";
+    const pass = $("#homeLoginPassword")?.value || "";
+    try {
+      await loginAdmin(email, pass);
+      loginModal?.classList.remove("open");
+      $("#homeLoginForm")?.reset();
+      showToast("Login Admin aktif!");
+    } catch (err) {
+      showToast("Login gagal: " + err.message);
+    }
+  });
+
+  watchAdminAuth((admin) => {
+    isAdmin = admin;
+    document.querySelectorAll("[data-admin-only]").forEach((el) => {
+      el.style.display = admin ? "" : "none";
+    });
+    const btn = $("#adminAuthBtn");
+    if (btn) {
+      btn.textContent = admin ? "⎋" : "🔑";
+      btn.title = admin ? "Logout Admin" : "Login Admin";
+    }
+  });
+}
+
+initAllButtons();
 applySiteHeaderAndUI();
 renderBerandaFeed();
 renderKontenList();
@@ -431,8 +455,8 @@ Promise.all([
   syncSeparatedFromCloud("beranda").catch(() => berandaPosts),
   syncSeparatedFromCloud("konten").catch(() => kontenItems)
 ]).then(([bList, kList]) => {
-  berandaPosts = bList;
-  kontenItems = kList;
+  if (Array.isArray(bList)) berandaPosts = bList;
+  if (Array.isArray(kList)) kontenItems = kList;
   renderBerandaFeed();
   renderKontenList($("#contentSearch")?.value || "");
   renderGaleriMedia();
