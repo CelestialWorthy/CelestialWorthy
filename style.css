@@ -1048,3 +1048,69 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ================= MODAL LOGIN & GALERI MEDIA TERPISAH ================= */
+.home-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(9, 11, 16, 0.85);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 9999;
+}
+
+.home-modal-backdrop.open {
+  display: flex;
+}
+
+.home-modal-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+  color: var(--text);
+}
+
+.home-modal-card h3 {
+  margin: 0 0 12px;
+  font: 700 18px 'Space Grotesk', sans-serif;
+  color: var(--accent);
+}
+
+.home-field {
+  margin-bottom: 12px;
+}
+
+.home-field label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+
+.home-field input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--panel2);
+  color: var(--text);
+  font: 13px 'DM Sans', sans-serif;
+}
+
+.home-modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
