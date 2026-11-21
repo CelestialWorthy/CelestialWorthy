@@ -130,9 +130,9 @@ function collectMediaEntries(item) {
 
   return rawList
     .map((m) => (typeof m === "string" ? { url: m, name: "Media" } : m))
-    .filter((m) => m && (m.url || m.src || m.data))
+    .filter((m) => m && (m.url || m.downloadUrl || m.src || m.data || m.path))
     .map((m) => ({
-      url: m.url || m.src || m.data,
+      url: m.url || m.downloadUrl || m.src || m.data || m.path,
       name: m.name || "Media",
       type: m.type || ""
     }));
