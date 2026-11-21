@@ -20,69 +20,65 @@
   </div>
 
   <div class="meta">
-    <input id="title" type="text" placeholder="Judul konten">
-    <input id="cat" list="catSuggestions" type="text" placeholder="Kategori (misal: Pengumuman)">
+    <input id="title" type="text" placeholder="Judul">
+    <input id="cat" list="catSuggestions" type="text" placeholder="Kategori (misal: Pengumuman, Panduan, Umum)">
     <datalist id="catSuggestions">
       <option value="Pengumuman">
       <option value="Panduan">
       <option value="Umum">
     </datalist>
-    <textarea id="desc" class="desc-auto" rows="3" placeholder="Tulis deskripsi atau link (misal: https://youtube.com/...)"></textarea>
+    <textarea id="desc" class="desc-auto" rows="3" placeholder="Tulis isi teks, deskripsi, atau link di sini..."></textarea>
   </div>
+
+  <!-- Upload Terpisah: Media (media/), Dokumen (dokumen/), Unggahan Lain (unggahan/) -->
+  <section class="sep-upload-grid">
+    <div class="sep-upload-box">
+      <div class="sep-upload-head">
+        <strong>🖼 Media (folder: media/)</strong>
+        <button type="button" class="mini-btn" id="pickSepMediaBtn">+ Pilih Media</button>
+      </div>
+      <div id="sepMediaList" class="sep-file-list"></div>
+    </div>
+
+    <div class="sep-upload-box">
+      <div class="sep-upload-head">
+        <strong>📄 Dokumen PDF / TXT / DOCS (folder: dokumen/)</strong>
+        <button type="button" class="mini-btn" id="pickSepDocBtn">+ Pilih Dokumen</button>
+      </div>
+      <div id="sepDocList" class="sep-file-list"></div>
+    </div>
+
+    <div class="sep-upload-box">
+      <div class="sep-upload-head">
+        <strong>📦 Unggahan Lain (folder: unggahan/)</strong>
+        <button type="button" class="mini-btn" id="pickSepOtherBtn">+ Pilih File Lain</button>
+      </div>
+      <div id="sepOtherList" class="sep-file-list"></div>
+    </div>
+  </section>
 
   <div class="host" id="host"><div id="st"></div></div>
   <p class="hint">Ketuk elemen untuk memilih, geser untuk memindah, tarik titik hijau untuk mengubah ukuran.</p>
-
-  <section class="folder-sec" id="folderSec">
-    <div class="folder-bar">
-      <b>Folder &amp; File Dokumen</b>
-      <button type="button" class="mini-btn" id="btnNewFolder">+ Buat Folder</button>
-    </div>
-    <div class="folder-create" id="folderCreate" style="display:none">
-      <input id="newFolderInp" type="text" placeholder="Nama folder baru (misal: Dokumen PDF, Catatan)">
-      <button type="button" class="mini-btn ac" id="saveFolderBtn">Simpan</button>
-      <button type="button" class="mini-btn" id="cancelFolderBtn">Batal</button>
-    </div>
-    <label class="pick-lbl" for="targetFolderSel">Masukkan file ke folder (pilih foldernya):</label>
-    <select id="targetFolderSel"></select>
-    <div id="folderGroups" class="folder-groups"></div>
-    <div class="sub-ttl">File di luar folder</div>
-    <div id="files" class="files"></div>
-  </section>
 </main>
 
 <nav class="tools">
-  <button type="button" onclick="sheet('size')"><i>✥</i>Ukuran &amp; Posisi</button>
-  <button type="button" onclick="sheet('color')"><i>💧</i>Warna &amp; Bentuk</button>
-  <button type="button" onclick="sheet('text')"><i>Aa</i>Teks</button>
-  <button type="button" onclick="sheet('border')"><i>▢</i>Border &amp; Bayangan</button>
-  <button type="button" onclick="sheet('canvas')"><i>▦</i>Kanvas</button>
-  <button type="button" onclick="dup()"><i>⧉</i>Duplikat</button>
-  <button type="button" class="del" onclick="del()"><i>🗑</i>Hapus</button>
+  <button type="button" id="toolSizeBtn"><i>✥</i>Ukuran &amp; Posisi</button>
+  <button type="button" id="toolColorBtn"><i>💧</i>Warna &amp; Bentuk</button>
+  <button type="button" id="toolTextBtn"><i>Aa</i>Teks</button>
+  <button type="button" id="toolBorderBtn"><i>▢</i>Border &amp; Bayangan</button>
+  <button type="button" id="toolCanvasBtn"><i>▦</i>Kanvas</button>
+  <button type="button" id="toolDupBtn"><i>⧉</i>Duplikat</button>
+  <button type="button" class="del" id="toolDelBtn"><i>🗑</i>Hapus</button>
 </nav>
 
-<button type="button" class="fab" onclick="sheet('add')">＋</button>
+<button type="button" class="fab" id="openAddSheetBtn">＋</button>
 <div class="sheet" id="sheet"></div>
-<input type="file" id="fi" hidden>
+
+<input type="file" id="sepMediaInput" accept="image/*,video/*,audio/*" hidden>
+<input type="file" id="sepDocInput" accept=".pdf,.txt,.doc,.docx,.rtf,.md,.csv,.xls,.xlsx,.ppt,.pptx,application/pdf,text/plain" hidden>
+<input type="file" id="sepOtherInput" hidden>
 
 <script src="konten-render.js"></script>
-<script src="tambah-konten.js"></script>
-<script src="github_storage.js"></script>
-<script type="module" src="firebase-auth.js"></script>
-<script>
-  window.addEventListener("DOMContentLoaded", async () => {
-    document.body.style.visibility = "hidden";
-    const check = setInterval(async () => {
-      if (!window.AlcrazhyAuth) return;
-      clearInterval(check);
-      const ok = await window.AlcrazhyAuth.requireAdminLogin();
-      if (ok) {
-        document.body.style.visibility = "visible";
-      } else {
-        location.href = "index.html";
-      }
-    }, 50);
-  });
-</script>
+<script type="module" src="tambah-konten.js"></script>
 </body>
 </html>
