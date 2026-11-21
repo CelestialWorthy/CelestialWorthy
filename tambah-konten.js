@@ -608,12 +608,12 @@ $("#pub").addEventListener("click", async () => {
     const descVal = $("#desc").value.trim();
     const combinedText = [descVal, linkVal].filter(Boolean).join("\n");
 
-    await saveSeparatedEntry(destMode, {
+        await saveSeparatedEntry(destMode, {
       title,
       link: linkVal,
       category,
       desc: descVal,
-      textBody: combinedText,
+      textBody: descVal,
       cw: c.cw,
       ch: c.ch,
       bg: c.bg,
