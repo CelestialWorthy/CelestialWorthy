@@ -90,32 +90,71 @@ async function applySiteHeaderAndUI() {
 // KOMPONEN ALUR: JUDUL -> LINK -> MEDIA -> DESKRIPSI -> FILE
 // =========================================================
 function extractLink(item) {
-  if (item && item.link) return String(item.link).trim();
-  const m = String(item?.desc || item?.textBody || "").match(/https?:\/\/[^\s<]+/i);
-  return m ? m[0] : "";
+  if (!item || typeof item !== "object") return "";
+  const direct = item.link || item.url || item.href || item.externalLink || "";
+  if (String(direct).trim()) return String(direct).trim();
+
+  const textPool = [item.desc, item.textBody, item.content, item.body]
+    .filter(Boolean)
+    .join(" ");
+  const match = textPool.match(/https?:\/\/[^\s<]+/i);
+  return match ? match[0] : "";
 }
 
 function renderLinkBlock(item) {
   const url = extractLink(item);
   if (!url) return "";
+  const safeHref = /^https?:\/\//i.test(url) ? url : `https://${url}`;
   return `<div style="margin-top:8px;">
-    <a href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="color:var(--green);text-decoration:underline;word-break:break-all;font-size:13px;">${esc(url)}</a>
+    <a href="${esc(safeHref)}" target="_blank" rel="noopener noreferrer" style="color:var(--green);text-decoration:underline;word-break:break-all;font-size:13px;">${esc(url)}</a>
   </div>`;
 }
 
+function collectMediaEntries(item) {
+  if (!item || typeof item !== "object") return [];
+  const rawList = [];
+
+  if (Array.isArray(item.mediaFiles)) rawList.push(...item.mediaFiles);
+  if (Array.isArray(item.media)) rawList.push(...item.media);
+  if (Array.isArray(item.images)) rawList.push(...item.images);
+
+  if (typeof item.media === "string" && item.media.trim()) {
+    rawList.push({ url: item.media.trim(), name: "Media" });
+  }
+  if (typeof item.image === "string" && item.image.trim()) {
+    rawList.push({ url: item.image.trim(), name: "Media" });
+  }
+  if (typeof item.mediaUrl === "string" && item.mediaUrl.trim()) {
+    rawList.push({ url: item.mediaUrl.trim(), name: "Media" });
+  }
+
+  return rawList
+    .map((m) => (typeof m === "string" ? { url: m, name: "Media" } : m))
+    .filter((m) => m && (m.url || m.src || m.data))
+    .map((m) => ({
+      url: m.url || m.src || m.data,
+      name: m.name || "Media",
+      type: m.type || ""
+    }));
+}
+
 function renderMediaBlock(item, force16by9 = false) {
-  const mediaList = Array.isArray(item.mediaFiles) ? item.mediaFiles : [];
+  const mediaList = collectMediaEntries(item);
   if (!mediaList.length) return "";
-  const ratioCss = force16by9 ? "aspect-ratio:16/9;width:100%;object-fit:cover;display:block;" : "width:100%;max-height:280px;object-fit:cover;display:block;";
+
+  const ratioCss = force16by9
+    ? "aspect-ratio:16/9;width:100%;object-fit:cover;display:block;"
+    : "width:100%;max-height:280px;object-fit:cover;display:block;";
+
   const itemsHtml = mediaList.map((m) => {
-    const isImg = /^image\//i.test(m.type || "") || /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(m.name || m.url || "");
-    if (isImg) {
-      return `<a href="${esc(m.url)}" target="_blank" rel="noopener" style="display:block;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#090b10;">
-        <img src="${esc(m.url)}" alt="${esc(m.name)}" style="${ratioCss}">
-      </a>`;
+    const isVideo = /^video\//i.test(m.type || "") || /\.(mp4|webm|mov|ogg)$/i.test(m.name || m.url || "");
+    if (isVideo) {
+      return `<div style="border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#090b10;">
+        <video src="${esc(m.url)}" controls playsinline style="${ratioCss}"></video>
+      </div>`;
     }
-    return `<a href="${esc(m.url)}" target="_blank" rel="noopener" style="display:block;padding:10px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--text);text-decoration:none;font-size:13px;">
-      🎬 ${esc(m.name)}
+    return `<a href="${esc(m.url)}" target="_blank" rel="noopener" style="display:block;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#090b10;">
+      <img src="${esc(m.url)}" alt="${esc(m.name)}" style="${ratioCss}" onerror="this.style.display='none'">
     </a>`;
   }).join("");
 
