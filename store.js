@@ -193,11 +193,13 @@ function normalizeEntry(payload = {}, target = "konten") {
   const docFiles = Array.isArray(payload.docFiles) ? payload.docFiles : [];
   const otherFiles = Array.isArray(payload.otherFiles) ? payload.otherFiles : [];
   const blocks = Array.isArray(payload.blocks) ? payload.blocks : [];
+  const link = String(payload.link || "").trim();
 
   return {
     id,
     target, // "konten" atau "beranda"
     title: String(payload.title || "Tanpa Judul").trim(),
+    link,
     category: String(payload.category || (target === "beranda" ? "Pengumuman" : "Umum")).trim(),
     desc: String(payload.desc || ""),
     textBody: String(payload.textBody || ""),
