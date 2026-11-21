@@ -1,4 +1,4 @@
-// js/store.js
+// store.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import {
   getFirestore,
@@ -16,9 +16,6 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
-// =========================================================
-// 1. KONFIGURASI FIREBASE & AUTH
-// =========================================================
 const firebaseConfig = {
   apiKey: "AIzaSyA9_g3hu66hmiQaOY5DGGIhUpeJG_8kOhk",
   authDomain: "celestianworthy.firebaseapp.com",
@@ -32,9 +29,6 @@ export const ADMIN_UIDS = [
   "INGhuGTr0IX5KrBsFgpWuncDGAf1",
 ];
 
-// =========================================================
-// 2. KONFIGURASI UPLOAD MEDIA KE GITHUB
-// =========================================================
 const _rawToken = "github_#pat_#11CVP7NVY0mNs3WJ8K5cqN_#XmzzH1rKXHmdaF5YxJwEgparfBEqfUTSNJ2tNUG8xgpAPHM3UQXjvZJpRaV";
 
 export const GITHUB_CONFIG = {
@@ -44,31 +38,38 @@ export const GITHUB_CONFIG = {
   token: _rawToken.replaceAll("#", "")
 };
 
+// Folder terpisah wajib di GitHub: media, dokumen, unggahan
+export const UPLOAD_FOLDERS = {
+  media: "media",
+  dokumen: "dokumen",
+  unggahan: "unggahan"
+};
+
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 
-const LOCAL_CONTENTS_KEY = "zf_contents_v1";
-const LOCAL_SETTINGS_PREFIX = "zf_settings_v1_";
+const KEY_CONTENTS = "zf_pisah_contents_v1";
+const KEY_BERANDA = "zf_pisah_beranda_v1";
+const KEY_SETTING_PREFIX = "zf_pisah_setting_v1_";
 
 // =========================================================
-// 3. AUTENTIKASI ADMIN
+// AUTH ADMIN
 // =========================================================
 export function isCurrentUserAdmin() {
-  const user = auth.currentUser;
-  return Boolean(user && ADMIN_UIDS.includes(user.uid));
+  const u = auth.currentUser;
+  return Boolean(u && ADMIN_UIDS.includes(u.uid));
 }
 
 function assertAdmin() {
   if (!isCurrentUserAdmin()) {
-    throw new Error("Akses ditolak: silakan login sebagai Admin terlebih dahulu.");
+    throw new Error("Silakan login sebagai Admin terlebih dahulu.");
   }
 }
 
-export function watchAdminAuth(callback) {
+export function watchAdminAuth(cb) {
   return onAuthStateChanged(auth, (user) => {
-    const admin = Boolean(user && ADMIN_UIDS.includes(user.uid));
-    callback(admin, user);
+    cb(Boolean(user && ADMIN_UIDS.includes(user.uid)), user);
   });
 }
 
@@ -76,7 +77,7 @@ export async function loginAdmin(email, password) {
   const cred = await signInWithEmailAndPassword(auth, email, password);
   if (!ADMIN_UIDS.includes(cred.user.uid)) {
     await signOut(auth);
-    throw new Error("Akun ini bukan pemilik (Admin) website.");
+    throw new Error("Akun ini bukan Admin.");
   }
   return cred.user;
 }
@@ -86,84 +87,73 @@ export async function logoutAdmin() {
 }
 
 // =========================================================
-// 4. CACHE LOKAL (LOCALSTORAGE)
+// UPLOAD TERPISAH: MEDIA | DOKUMEN (PDF, TXT, DOCS) | UNGGAHAN LAIN
 // =========================================================
-export function getLocalContents() {
-  try {
-    const raw = localStorage.getItem(LOCAL_CONTENTS_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
+export function resolveUploadFolder(file, kind = "auto") {
+  if (kind === "media" || kind === "dokumen" || kind === "unggahan") {
+    return UPLOAD_FOLDERS[kind];
   }
-}
+  const mime = String(file?.type || "").toLowerCase();
+  const name = String(file?.name || "").toLowerCase();
 
-export function setLocalContents(items) {
-  const safeList = Array.isArray(items) ? items : [];
-  localStorage.setItem(LOCAL_CONTENTS_KEY, JSON.stringify(safeList));
-}
-
-export function getLocalSetting(key, fallback = null) {
-  try {
-    const raw = localStorage.getItem(LOCAL_SETTINGS_PREFIX + key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
+  if (
+    mime.startsWith("image/") ||
+    mime.startsWith("video/") ||
+    mime.startsWith("audio/") ||
+    /\.(png|jpe?g|gif|webp|bmp|svg|mp4|webm|mp3|wav|ogg)$/.test(name)
+  ) {
+    return UPLOAD_FOLDERS.media;
   }
+
+  if (/\.(pdf|txt|doc|docx|rtf|md|csv|xls|xlsx|ppt|pptx)$/.test(name)) {
+    return UPLOAD_FOLDERS.dokumen;
+  }
+
+  return UPLOAD_FOLDERS.unggahan;
 }
 
-export function setLocalSetting(key, value) {
-  localStorage.setItem(LOCAL_SETTINGS_PREFIX + key, JSON.stringify(value));
-}
-
-// =========================================================
-// 5. UPLOAD FILE & MEDIA KE FOLDER DI GITHUB
-// =========================================================
-export async function uploadMediaFile(file, folder = "media/konten") {
+export async function uploadSeparatedFile(file, kind = "auto") {
   assertAdmin();
   if (!file) throw new Error("Tidak ada file yang dipilih.");
+
+  const folder = resolveUploadFolder(file, kind);
 
   const base64Content = await new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
-      const result = String(reader.result || "");
-      const parts = result.split(",");
-      if (parts.length < 2) {
-        reject(new Error("Format file tidak dapat dibaca."));
-        return;
-      }
+      const parts = String(reader.result || "").split(",");
+      if (parts.length < 2) return reject(new Error("Gagal membaca file."));
       resolve(parts[1]);
     };
-    reader.onerror = (err) => reject(err);
+    reader.onerror = reject;
     reader.readAsDataURL(file);
   });
 
-  const cleanFolder = String(folder || "media/konten").replace(/^\/+|\/+$/g, "");
   const safeName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-  const filePath = `${cleanFolder}/${safeName}`;
-
+  const filePath = `${folder}/${safeName}`;
   const apiUrl = `https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/contents/${filePath}`;
 
-  const response = await fetch(apiUrl, {
+  const res = await fetch(apiUrl, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${GITHUB_CONFIG.token}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      message: `Upload ${safeName}`,
+      message: `Upload ${folder}/${safeName}`,
       content: base64Content,
       branch: GITHUB_CONFIG.branch
     })
   });
 
-  if (!response.ok) {
-    const errData = await response.json().catch(() => ({}));
-    throw new Error(errData.message || "Gagal mengunggah media ke GitHub.");
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `Gagal upload ke ${folder}`);
   }
 
   return {
     name: file.name,
+    bucket: folder, // "media" | "dokumen" | "unggahan"
     path: filePath,
     type: file.type || "application/octet-stream",
     size: file.size || 0,
@@ -172,110 +162,122 @@ export async function uploadMediaFile(file, folder = "media/konten") {
 }
 
 // =========================================================
-// 6. OPERASI KONTEN (TERPISAH: MEDIA vs ISI TEKS & FILE)
+// PENYIMPANAN TERPISAH: KONTEN vs BERANDA
 // =========================================================
-function normalizeContentItem(payload = {}) {
+function getCollectionConfig(target = "konten") {
+  if (target === "beranda") {
+    return { colName: "beranda_posts", storageKey: KEY_BERANDA, target: "beranda" };
+  }
+  return { colName: "contents", storageKey: KEY_CONTENTS, target: "konten" };
+}
+
+export function getLocalItems(target = "konten") {
+  const { storageKey } = getCollectionConfig(target);
+  try {
+    const data = JSON.parse(localStorage.getItem(storageKey) || "[]");
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
+export function setLocalItems(target = "konten", items = []) {
+  const { storageKey } = getCollectionConfig(target);
+  localStorage.setItem(storageKey, JSON.stringify(Array.isArray(items) ? items : []));
+}
+
+function normalizeEntry(payload = {}, target = "konten") {
   const now = Date.now();
   const id = String(payload.id || now);
-  const mediaList = Array.isArray(payload.mediaList) ? payload.mediaList : [];
-  const attachments = Array.isArray(payload.attachments) ? payload.attachments : [];
+  const mediaFiles = Array.isArray(payload.mediaFiles) ? payload.mediaFiles : [];
+  const docFiles = Array.isArray(payload.docFiles) ? payload.docFiles : [];
+  const otherFiles = Array.isArray(payload.otherFiles) ? payload.otherFiles : [];
   const blocks = Array.isArray(payload.blocks) ? payload.blocks : [];
 
   return {
     id,
+    target, // "konten" atau "beranda"
     title: String(payload.title || "Tanpa Judul").trim(),
-    category: String(payload.category || "Umum").trim(),
-    summary: String(payload.summary || "").trim(),
+    category: String(payload.category || (target === "beranda" ? "Pengumuman" : "Umum")).trim(),
+    desc: String(payload.desc || ""),
     textBody: String(payload.textBody || ""),
+    cw: Number(payload.cw || 360),
+    ch: Number(payload.ch || (target === "beranda" ? 320 : 420)),
+    bg: payload.bg || (target === "beranda" ? "#111622" : "#0d0f14"),
     blocks,
-    mediaList,
-    attachments,
-    coverUrl: payload.coverUrl || (mediaList[0] ? mediaList[0].url : null),
+    mediaFiles,   // file dari folder media/
+    docFiles,     // file pdf, txt, docs dari folder dokumen/
+    otherFiles,   // file unggahan lain dari folder unggahan/
     createdAt: Number(payload.createdAt || now),
     updatedAt: now
   };
 }
 
-// Tambah atau edit satu item konten (lokal + Firestore)
-export async function saveContentItem(payload) {
+export async function saveSeparatedEntry(target = "konten", payload = {}) {
   assertAdmin();
+  const { colName } = getCollectionConfig(target);
+  const item = normalizeEntry(payload, target);
 
-  const item = normalizeContentItem(payload);
-  const current = getLocalContents().filter((x) => String(x.id) !== item.id);
-  const nextList = [item, ...current].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  const next = [item, ...getLocalItems(target).filter((x) => String(x.id) !== item.id)]
+    .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
-  setLocalContents(nextList);
-  await setDoc(doc(db, "contents", item.id), item);
-
+  setLocalItems(target, next);
+  await setDoc(doc(db, colName, item.id), item);
   return item;
 }
 
-// Hapus satu item konten berdasarkan ID (lokal + Firestore)
-export async function deleteContentItem(id) {
+export async function deleteSeparatedEntry(target = "konten", id) {
   assertAdmin();
-
+  const { colName } = getCollectionConfig(target);
   const targetId = String(id);
-  const filtered = getLocalContents().filter((x) => String(x.id) !== targetId);
 
-  setLocalContents(filtered);
-  await deleteDoc(doc(db, "contents", targetId));
-
-  return filtered;
+  const next = getLocalItems(target).filter((x) => String(x.id) !== targetId);
+  setLocalItems(target, next);
+  await deleteDoc(doc(db, colName, targetId));
+  return next;
 }
 
-// Ambil satu item konten berdasarkan ID
-export async function getContentById(id) {
-  const targetId = String(id);
-  const localMatch = getLocalContents().find((x) => String(x.id) === targetId);
-  if (localMatch) return localMatch;
+export async function syncSeparatedFromCloud(target = "konten") {
+  const { colName } = getCollectionConfig(target);
+  const snap = await getDocs(collection(db, colName));
+  const items = [];
+  snap.forEach((d) => items.push(d.data()));
+  items.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  setLocalItems(target, items);
+  return items;
+}
 
-  const snap = await getDoc(doc(db, "contents", targetId));
-  if (snap.exists()) {
-    return snap.data();
+// =========================================================
+// PENGATURAN HALAMAN UTAMA / UI (TERPISAH PER DOKUMEN)
+// =========================================================
+export function getLocalSetting(key, fallback = null) {
+  try {
+    const raw = localStorage.getItem(KEY_SETTING_PREFIX + key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
   }
-  return null;
 }
 
-// Sinkronisasi daftar konten dari Firestore ke lokal
-export async function syncContentsFromCloud() {
-  const snap = await getDocs(collection(db, "contents"));
-  const cloudItems = [];
-  snap.forEach((d) => {
-    cloudItems.push(d.data());
-  });
-
-  cloudItems.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-  setLocalContents(cloudItems);
-  return cloudItems;
-}
-
-// =========================================================
-// 7. PENGATURAN TERPISAH (PROFIL, AVATAR, WALLPAPER, DLL.)
-// =========================================================
-export async function saveSettingItem(docName, dataObj) {
+export async function saveSettingDoc(docName, dataObj) {
   assertAdmin();
-
-  const payload = {
-    ...dataObj,
-    updatedAt: Date.now()
-  };
-
-  setLocalSetting(docName, payload);
-  await setDoc(doc(db, "portfolio_settings", docName), payload);
+  const payload = { ...dataObj, updatedAt: Date.now() };
+  localStorage.setItem(KEY_SETTING_PREFIX + docName, JSON.stringify(payload));
+  await setDoc(doc(db, "site_settings", docName), payload);
   return payload;
 }
 
-export async function loadSettingItem(docName, fallback = null) {
-  const localVal = getLocalSetting(docName, null);
+export async function loadSettingDoc(docName, fallback = null) {
+  const local = getLocalSetting(docName, null);
   try {
-    const snap = await getDoc(doc(db, "portfolio_settings", docName));
+    const snap = await getDoc(doc(db, "site_settings", docName));
     if (snap.exists()) {
-      const cloudVal = snap.data();
-      setLocalSetting(docName, cloudVal);
-      return cloudVal;
+      const cloud = snap.data();
+      localStorage.setItem(KEY_SETTING_PREFIX + docName, JSON.stringify(cloud));
+      return cloud;
     }
   } catch (err) {
-    console.warn(`Gagal memuat setting "${docName}" dari cloud:`, err);
+    console.warn(`Gagal ambil setting ${docName}:`, err);
   }
-  return localVal || fallback;
+  return local || fallback;
 }
