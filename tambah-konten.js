@@ -8,6 +8,14 @@ import {
 
 const $ = (s) => document.querySelector(s);
 
+const RATIO_PRESETS = {
+  "1:1": { cw: 360, ch: 360 },
+  "16:9": { cw: 480, ch: 270 },
+  "9:16": { cw: 270, ch: 480 },
+  "4:3": { cw: 400, ch: 300 },
+  "3:4": { cw: 300, ch: 400 }
+};
+
 const drafts = {
   konten: {
     cw: 360,
@@ -18,18 +26,20 @@ const drafts = {
     docFiles: [],
     otherFiles: [],
     title: "",
+    link: "",
     cat: "",
     desc: ""
   },
   beranda: {
     cw: 360,
-    ch: 320,
+    ch: 202,
     bg: "#111622",
     blocks: [],
     mediaFiles: [],
     docFiles: [],
     otherFiles: [],
     title: "",
+    link: "",
     cat: "Pengumuman",
     desc: ""
   }
@@ -77,19 +87,66 @@ async function ensureAdminAccess() {
 }
 
 // =========================================================
+// PILIHAN UKURAN KANVAS (1:1, 16:9, 9:16, 4:3, 3:4 & KUSTOM)
+// =========================================================
+function syncCanvasSizeControls() {
+  if ($("#customCanvasW")) $("#customCanvasW").value = c.cw;
+  if ($("#customCanvasH")) $("#customCanvasH").value = c.ch;
+  if ($("#canvasSizeBadge")) $("#canvasSizeBadge").textContent = `${c.cw} × ${c.ch}`;
+
+  document.querySelectorAll(".ratio-btn").forEach((btn) => {
+    const preset = RATIO_PRESETS[btn.dataset.ratio];
+    const match = preset && preset.cw === c.cw && preset.ch === c.ch;
+    btn.classList.toggle("active", Boolean(match));
+  });
+}
+
+function setCanvasDimensions(nextW, nextH) {
+  c.cw = Math.max(120, Math.min(1600, Math.round(Number(nextW) || 360)));
+  c.ch = Math.max(120, Math.min(2000, Math.round(Number(nextH) || 360)));
+  syncCanvasSizeControls();
+  redraw();
+}
+
+document.querySelectorAll(".ratio-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const preset = RATIO_PRESETS[btn.dataset.ratio];
+    if (preset) setCanvasDimensions(preset.cw, preset.ch);
+  });
+});
+
+$("#customCanvasW")?.addEventListener("input", (e) => {
+  setCanvasDimensions(e.target.value, c.ch);
+});
+
+$("#customCanvasH")?.addEventListener("input", (e) => {
+  setCanvasDimensions(c.cw, e.target.value);
+});
+
+// =========================================================
 // GANTI TUJUAN: 1. KONTEN vs 2. BERANDA
 // =========================================================
 function saveCurrentMeta() {
   c.title = $("#title").value;
+  c.link = $("#link").value;
   c.cat = $("#cat").value;
   c.desc = $("#desc").value;
 }
 
 function loadDraftMeta() {
   $("#title").value = c.title || "";
+  $("#link").value = c.link || "";
   $("#cat").value = c.cat || (destMode === "beranda" ? "Pengumuman" : "");
   $("#desc").value = c.desc || "";
   resizeDesc();
+}
+
+function applyDestinationVisibility() {
+  const isBeranda = destMode === "beranda";
+  if ($("#canvasPresetBox")) $("#canvasPresetBox").style.display = isBeranda ? "none" : "";
+  if ($("#kontenCanvasWrap")) $("#kontenCanvasWrap").style.display = isBeranda ? "none" : "";
+  if ($("#kontenToolsBar")) $("#kontenToolsBar").style.display = isBeranda ? "none" : "";
+  if ($("#openAddSheetBtn")) $("#openAddSheetBtn").style.display = isBeranda ? "none" : "";
 }
 
 function setDestMode(nextMode) {
@@ -101,6 +158,8 @@ function setDestMode(nextMode) {
   $("#modeKonten").classList.toggle("active", destMode === "konten");
   $("#modeBeranda").classList.toggle("active", destMode === "beranda");
   $("#pageModeTitle").textContent = destMode === "beranda" ? "Postingan Beranda Baru" : "Konten Baru";
+  applyDestinationVisibility();
+  syncCanvasSizeControls();
   loadDraftMeta();
   renderAllSeparatedLists();
   redraw();
@@ -181,9 +240,10 @@ bindSeparatedUploader("#pickSepDocBtn", "#sepDocInput", "dokumen", c.docFiles);
 bindSeparatedUploader("#pickSepOtherBtn", "#sepOtherInput", "unggahan", c.otherFiles);
 
 // =========================================================
-// KANVAS & ELEMEN
+// KANVAS & ELEMEN (KHUSUS KONTEN)
 // =========================================================
 function layout() {
+  if (!host || !st) return;
   host.style.paddingBottom = (c.ch / c.cw * 100) + "%";
   host.style.background = c.bg;
   st.style.width = c.cw + "px";
@@ -194,6 +254,7 @@ function layout() {
 }
 
 function redraw() {
+  if (destMode === "beranda") return;
   layout();
   st.innerHTML = "";
   c.blocks.forEach((b) => {
@@ -352,7 +413,7 @@ function del() {
 }
 
 const SLD = {
-  size: ["Ukuran & Posisi", [["x","Posisi X",-100,460,"px"],["y","Posisi Y",-100,1000,"px"],["w","Lebar",16,500,"px"],["h","Tinggi",16,700,"px"],["rot","Rotasi",-180,180,"°"]]],
+  size: ["Ukuran & Posisi", [["x","Posisi X",-100,800,"px"],["y","Posisi Y",-100,1200,"px"],["w","Lebar",16,800,"px"],["h","Tinggi",16,1000,"px"],["rot","Rotasi",-180,180,"°"]]],
   border: ["Border & Bayangan", [["bw","Tebal border",0,12,"px"],["sh","Bayangan",0,40,"px"]]],
   text: ["Teks", [["ts","Ukuran teks",8,96,"px"],["tw","Ketebalan",100,900,""],["tk","Kemiringan",-30,30,"°"],["tsh","Bayangan teks",0,20,"px"],["tbw","Border teks",0,6,"px"]]]
 };
@@ -380,7 +441,8 @@ function sheet(k) {
       `<button type="button" class="wide" id="addCanvasImgBtn">🖼 Gambar (unggah ke media/)</button>`;
   } else if (k === "canvas") {
     h = head("Kanvas") +
-      `<label>Tinggi kanvas<span id="v_ch">${c.ch}px</span></label><input type="range" min="200" max="1400" value="${c.ch}" id="canvasHeightRange">` +
+      `<label>Lebar kanvas<span id="v_cw">${c.cw}px</span></label><input type="range" min="160" max="1200" value="${c.cw}" id="canvasWidthRange">` +
+      `<label>Tinggi kanvas<span id="v_ch">${c.ch}px</span></label><input type="range" min="160" max="1400" value="${c.ch}" id="canvasHeightRange">` +
       `<label>Warna latar</label><input type="color" value="${c.bg}" id="canvasBgColor">`;
   } else if (!b) {
     return alert("Pilih elemen dulu (ketuk elemen di kanvas, atau tambah dengan tombol ＋).");
@@ -427,9 +489,16 @@ function bindSheetEvents() {
   $("#addTextFreeBtn")?.addEventListener("click", () => addText(false));
   $("#addCanvasImgBtn")?.addEventListener("click", pickCanvasImageUpload);
 
+  $("#canvasWidthRange")?.addEventListener("input", (e) => {
+    c.cw = +e.target.value;
+    $("#v_cw").textContent = e.target.value + "px";
+    syncCanvasSizeControls();
+    layout();
+  });
   $("#canvasHeightRange")?.addEventListener("input", (e) => {
     c.ch = +e.target.value;
     $("#v_ch").textContent = e.target.value + "px";
+    syncCanvasSizeControls();
     layout();
   });
   $("#canvasBgColor")?.addEventListener("input", (e) => {
@@ -535,17 +604,20 @@ $("#pub").addEventListener("click", async () => {
   try {
     const rawCat = $("#cat").value.trim();
     const category = destMode === "beranda" ? (rawCat || "Pengumuman") : (rawCat || "Umum");
+    const linkVal = $("#link").value.trim();
     const descVal = $("#desc").value.trim();
+    const combinedText = [descVal, linkVal].filter(Boolean).join("\n");
 
     await saveSeparatedEntry(destMode, {
       title,
+      link: linkVal,
       category,
       desc: descVal,
-      textBody: descVal,
+      textBody: combinedText,
       cw: c.cw,
       ch: c.ch,
       bg: c.bg,
-      blocks: c.blocks,
+      blocks: destMode === "beranda" ? [] : c.blocks,
       mediaFiles: c.mediaFiles,
       docFiles: c.docFiles,
       otherFiles: c.otherFiles
@@ -561,5 +633,7 @@ $("#pub").addEventListener("click", async () => {
   }
 });
 
+applyDestinationVisibility();
+syncCanvasSizeControls();
 renderAllSeparatedLists();
 redraw();
