@@ -19,30 +19,61 @@
     <button type="button" class="dest-btn" id="modeBeranda">2. Beranda</button>
   </div>
 
+  <!-- Pilihan Ukuran Kanvas Khusus Konten -->
+  <section class="canvas-preset-box" id="canvasPresetBox">
+    <div class="canvas-preset-head">
+      <strong>Ukuran Kanvas</strong>
+      <span id="canvasSizeBadge">360 × 420</span>
+    </div>
+    <div class="ratio-grid" id="ratioPresetGrid">
+      <button type="button" class="ratio-btn" data-ratio="1:1">1:1</button>
+      <button type="button" class="ratio-btn" data-ratio="16:9">16:9</button>
+      <button type="button" class="ratio-btn" data-ratio="9:16">9:16</button>
+      <button type="button" class="ratio-btn" data-ratio="4:3">4:3</button>
+      <button type="button" class="ratio-btn" data-ratio="3:4">3:4</button>
+    </div>
+    <div class="custom-wh-row">
+      <label class="wh-field">
+        <span>Lebar (px)</span>
+        <input id="customCanvasW" type="number" min="120" max="1600" value="360">
+      </label>
+      <label class="wh-field">
+        <span>Tinggi (px)</span>
+        <input id="customCanvasH" type="number" min="120" max="2000" value="420">
+      </label>
+    </div>
+  </section>
+
+  <!-- Urutan Alur: 1. Judul -> 2. Link -> 3. Media -> 4. Deskripsi -> 5. File -->
   <div class="meta">
-    <input id="title" type="text" placeholder="Judul">
+    <input id="title" type="text" placeholder="1. Judul">
+    <input id="link" type="url" placeholder="2. Link (https://...)">
     <input id="cat" list="catSuggestions" type="text" placeholder="Kategori (misal: Pengumuman, Panduan, Umum)">
     <datalist id="catSuggestions">
       <option value="Pengumuman">
       <option value="Panduan">
       <option value="Umum">
     </datalist>
-    <textarea id="desc" class="desc-auto" rows="3" placeholder="Tulis isi teks, deskripsi, atau link di sini..."></textarea>
   </div>
 
-  <!-- Upload Terpisah: Media (media/), Dokumen (dokumen/), Unggahan Lain (unggahan/) -->
   <section class="sep-upload-grid">
     <div class="sep-upload-box">
       <div class="sep-upload-head">
-        <strong>🖼 Media (folder: media/)</strong>
+        <strong>3. Media (folder: media/)</strong>
         <button type="button" class="mini-btn" id="pickSepMediaBtn">+ Pilih Media</button>
       </div>
       <div id="sepMediaList" class="sep-file-list"></div>
     </div>
+  </section>
 
+  <div class="meta">
+    <textarea id="desc" class="desc-auto" rows="3" placeholder="4. Deskripsi..."></textarea>
+  </div>
+
+  <section class="sep-upload-grid">
     <div class="sep-upload-box">
       <div class="sep-upload-head">
-        <strong>📄 Dokumen PDF / TXT / DOCS (folder: dokumen/)</strong>
+        <strong>5. File Dokumen (folder: dokumen/)</strong>
         <button type="button" class="mini-btn" id="pickSepDocBtn">+ Pilih Dokumen</button>
       </div>
       <div id="sepDocList" class="sep-file-list"></div>
@@ -50,18 +81,20 @@
 
     <div class="sep-upload-box">
       <div class="sep-upload-head">
-        <strong>📦 Unggahan Lain (folder: unggahan/)</strong>
+        <strong>5. File Lainnya (folder: unggahan/)</strong>
         <button type="button" class="mini-btn" id="pickSepOtherBtn">+ Pilih File Lain</button>
       </div>
       <div id="sepOtherList" class="sep-file-list"></div>
     </div>
   </section>
 
-  <div class="host" id="host"><div id="st"></div></div>
-  <p class="hint">Ketuk elemen untuk memilih, geser untuk memindah, tarik titik hijau untuk mengubah ukuran.</p>
+  <div id="kontenCanvasWrap">
+    <div class="host" id="host"><div id="st"></div></div>
+    <p class="hint">Ketuk elemen untuk memilih, geser untuk memindah, tarik titik hijau untuk mengubah ukuran.</p>
+  </div>
 </main>
 
-<nav class="tools">
+<nav class="tools" id="kontenToolsBar">
   <button type="button" id="toolSizeBtn"><i>✥</i>Ukuran &amp; Posisi</button>
   <button type="button" id="toolColorBtn"><i>💧</i>Warna &amp; Bentuk</button>
   <button type="button" id="toolTextBtn"><i>Aa</i>Teks</button>
