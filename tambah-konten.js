@@ -1,47 +1,99 @@
-const $ = s => document.querySelector(s);
-const def = [
-  { id: 1, title: "Pengumuman Resmi #1", category: "Pengumuman", desc: "Selamat datang di ruang komunitas kita. Silakan buat konten baru dan jelajahi galeri!", media: "" },
-  { id: 2, title: "Panduan Komunitas", category: "Panduan", desc: "Aturan dasar dan tata cara berdiskusi yang sehat di Alcrazhy Community.", media: "" }
-];
+// tambah-konten.js
+import {
+  watchAdminAuth,
+  loginAdmin,
+  uploadSeparatedFile,
+  saveSeparatedEntry
+} from "./store.js";
 
-let savedDB = {};
-try {
-  savedDB = JSON.parse(localStorage.getItem("alcrazhyCommunity") || "{}");
-} catch (e) {}
+const $ = (s) => document.querySelector(s);
 
-const sharedFolders = Array.isArray(savedDB.folders) ? savedDB.folders.slice() : [];
 const drafts = {
-  konten: { cw: 360, ch: 420, bg: "#0d0f14", blocks: [], files: [], folders: sharedFolders, title: "", cat: "", desc: "" },
-  beranda: { cw: 360, ch: 320, bg: "#111622", blocks: [], files: [], folders: sharedFolders, title: "", cat: "Pengumuman", desc: "" }
+  konten: {
+    cw: 360,
+    ch: 420,
+    bg: "#0d0f14",
+    blocks: [],
+    mediaFiles: [],
+    docFiles: [],
+    otherFiles: [],
+    title: "",
+    cat: "",
+    desc: ""
+  },
+  beranda: {
+    cw: 360,
+    ch: 320,
+    bg: "#111622",
+    blocks: [],
+    mediaFiles: [],
+    docFiles: [],
+    otherFiles: [],
+    title: "",
+    cat: "Pengumuman",
+    desc: ""
+  }
 };
 
 let destMode = "konten";
 let c = drafts.konten;
-const COLORS = ["#27e0a0", "#ff3b30", "#ff9500", "#ffcc00", "#007aff", "#af52de", "#ffffff", "#8e8e93", "#000000", "#d7b46a", "#00c7be", "#ff2d92"];
-let sel = null, sc = 1, uid = Date.now();
-const openFld = new Set(sharedFolders.map(f => f.id));
-const host = $("#host"), st = $("#st");
-const blk = id => c.blocks.find(b => b.id === id);
-const nodeOf = b => st.querySelector(`[data-id="${b.id}"]`);
+let isAdmin = false;
+
+const COLORS = ["#27e0a0","#ff3b30","#ff9500","#ffcc00","#007aff","#af52de","#ffffff","#8e8e93","#000000","#d7b46a","#00c7be","#ff2d92"];
+let sel = null;
+let sc = 1;
+let uid = Date.now();
+
+const host = $("#host");
+const st = $("#st");
+const blk = (id) => c.blocks.find((b) => b.id === id);
+const nodeOf = (b) => st.querySelector(`[data-id="${b.id}"]`);
 const cur = () => blk(sel);
-const esc = s => String(s || "").replace(/[&<>"']/g, m => ({
+const esc = (s) => String(s || "").replace(/[&<>"']/g, (m) => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
 }[m]));
 
-function saveCurrentMetaToDraft() {
-  c.title = $("#title").value;
-  c.cat = $("#cat").value;
-  if ($("#desc")) c.desc = $("#desc").value;
+// =========================================================
+// AUTH ADMIN
+// =========================================================
+watchAdminAuth((admin) => {
+  isAdmin = admin;
+});
+
+async function ensureAdminAccess() {
+  if (isAdmin) return true;
+  const email = prompt("Login Admin - Masukkan Email:");
+  if (!email) return false;
+  const pass = prompt("Masukkan Kata Sandi:");
+  if (!pass) return false;
+  try {
+    await loginAdmin(email.trim(), pass);
+    isAdmin = true;
+    return true;
+  } catch (err) {
+    alert("Login gagal: " + err.message);
+    return false;
+  }
 }
 
-function loadDraftMetaToInputs() {
+// =========================================================
+// GANTI TUJUAN: 1. KONTEN vs 2. BERANDA
+// =========================================================
+function saveCurrentMeta() {
+  c.title = $("#title").value;
+  c.cat = $("#cat").value;
+  c.desc = $("#desc").value;
+}
+
+function loadDraftMeta() {
   $("#title").value = c.title || "";
   $("#cat").value = c.cat || (destMode === "beranda" ? "Pengumuman" : "");
-  if ($("#desc")) $("#desc").value = c.desc || "";
+  $("#desc").value = c.desc || "";
+  resizeDesc();
 }
 
 function setDestMode(nextMode) {
-  saveCurrentMetaToDraft();
+  saveCurrentMeta();
   destMode = nextMode === "beranda" ? "beranda" : "konten";
   c = drafts[destMode];
   sel = null;
@@ -49,73 +101,88 @@ function setDestMode(nextMode) {
   $("#modeKonten").classList.toggle("active", destMode === "konten");
   $("#modeBeranda").classList.toggle("active", destMode === "beranda");
   $("#pageModeTitle").textContent = destMode === "beranda" ? "Postingan Beranda Baru" : "Konten Baru";
-  loadDraftMetaToInputs();
-  renderFolderSelect();
-  drawFiles();
+  loadDraftMeta();
+  renderAllSeparatedLists();
   redraw();
 }
 
-function syncFoldersStorage() {
-  drafts.konten.folders = c.folders;
-  drafts.beranda.folders = c.folders;
-  try {
-    const curDB = JSON.parse(localStorage.getItem("alcrazhyCommunity") || "{}");
-    curDB.folders = c.folders;
-    localStorage.setItem("alcrazhyCommunity", JSON.stringify(curDB));
-  } catch (e) {}
+$("#modeKonten").addEventListener("click", () => setDestMode("konten"));
+$("#modeBeranda").addEventListener("click", () => setDestMode("beranda"));
+
+function resizeDesc() {
+  const d = $("#desc");
+  if (!d) return;
+  d.style.height = "auto";
+  d.style.height = Math.max(84, d.scrollHeight) + "px";
+}
+$("#desc").addEventListener("input", resizeDesc);
+
+// =========================================================
+// UPLOAD TERPISAH: MEDIA / DOKUMEN / UNGGAHAN LAIN
+// =========================================================
+function renderSeparatedBucket(containerId, list, bucketName) {
+  const box = $(containerId);
+  if (!box) return;
+  if (!list.length) {
+    box.innerHTML = `<div class="f-cnt">Belum ada file di ${bucketName}/.</div>`;
+    return;
+  }
+  box.innerHTML = list.map((item, idx) => `
+    <div class="sep-file-chip">
+      <span>${esc(item.name)} (${Math.max(1, Math.round((item.size || 0) / 1024))} KB)</span>
+      <button type="button" class="sep-file-rm" data-bucket="${bucketName}" data-idx="${idx}">✕</button>
+    </div>
+  `).join("");
+
+  box.querySelectorAll(".sep-file-rm").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const bkt = btn.getAttribute("data-bucket");
+      const idx = Number(btn.getAttribute("data-idx"));
+      if (bkt === "media") c.mediaFiles.splice(idx, 1);
+      else if (bkt === "dokumen") c.docFiles.splice(idx, 1);
+      else c.otherFiles.splice(idx, 1);
+      renderAllSeparatedLists();
+    });
+  });
 }
 
-function toggleFolderBox(show) {
-  $("#folderCreate").style.display = show ? "flex" : "none";
-  if (show) $("#newFolderInp").focus();
+function renderAllSeparatedLists() {
+  renderSeparatedBucket("#sepMediaList", c.mediaFiles, "media");
+  renderSeparatedBucket("#sepDocList", c.docFiles, "dokumen");
+  renderSeparatedBucket("#sepOtherList", c.otherFiles, "unggahan");
 }
 
-function addFolder() {
-  const name = $("#newFolderInp").value.trim();
-  if (!name) return;
-  const f = { id: "fld_" + (++uid), name };
-  c.folders.push(f);
-  openFld.add(f.id);
-  $("#newFolderInp").value = "";
-  toggleFolderBox(false);
-  syncFoldersStorage();
-  renderFolderSelect(f.id);
-  drawFiles();
+function bindSeparatedUploader(triggerId, inputId, kind, targetArray) {
+  $(triggerId).addEventListener("click", async () => {
+    const ok = await ensureAdminAccess();
+    if (!ok) return;
+    $(inputId).value = "";
+    $(inputId).click();
+  });
+
+  $(inputId).addEventListener("change", async () => {
+    const file = $(inputId).files[0];
+    if (!file) return;
+    try {
+      const uploaded = await uploadSeparatedFile(file, kind);
+      targetArray.push(uploaded);
+      renderAllSeparatedLists();
+      alert(`Berhasil diunggah ke ${kind}/: ${uploaded.name}`);
+    } catch (err) {
+      alert("Gagal upload: " + err.message);
+    } finally {
+      $(inputId).value = "";
+    }
+  });
 }
 
-function renderFolderSelect(pickId) {
-  const selEl = $("#targetFolderSel");
-  if (!selEl) return;
-  const curVal = pickId !== undefined ? pickId : selEl.value;
-  selEl.innerHTML = `<option value="">— Tanpa Folder (Luar Folder) —</option>` +
-    c.folders.map(f => `<option value="${esc(f.id)}">Folder: ${esc(f.name)}</option>`).join("");
-  selEl.value = c.folders.some(f => f.id === curVal) ? curVal : "";
-}
+bindSeparatedUploader("#pickSepMediaBtn", "#sepMediaInput", "media", c.mediaFiles);
+bindSeparatedUploader("#pickSepDocBtn", "#sepDocInput", "dokumen", c.docFiles);
+bindSeparatedUploader("#pickSepOtherBtn", "#sepOtherInput", "unggahan", c.otherFiles);
 
-function moveFile(idx, folderId) {
-  if (!c.files[idx]) return;
-  c.files[idx].folderId = folderId || "";
-  if (folderId) openFld.add(folderId);
-  drawFiles();
-}
-
-function removeFile(idx) {
-  c.files.splice(idx, 1);
-  drawFiles();
-}
-
-function toggleFolderOpen(id) {
-  if (openFld.has(id)) openFld.delete(id);
-  else openFld.add(id);
-  drawFiles();
-}
-
-function fileItemHtml(x, i) {
-  const opts = `<option value="">Luar Folder</option>` +
-    c.folders.map(f => `<option value="${esc(f.id)}" ${x.folderId === f.id ? "selected" : ""}>${esc(f.name)}</option>`).join("");
-  return `<div class="file-row"><span class="file-meta">📎 ${esc(x.name)} · ${Math.max(1, Math.round(x.size / 1024))} KB</span><div class="file-act"><select onchange="moveFile(${i},this.value)">${opts}</select><button type="button" class="rm" onclick="removeFile(${i})">✕</button></div></div>`;
-}
-
+// =========================================================
+// KANVAS & ELEMEN
+// =========================================================
 function layout() {
   host.style.paddingBottom = (c.ch / c.cw * 100) + "%";
   host.style.background = c.bg;
@@ -129,24 +196,17 @@ function layout() {
 function redraw() {
   layout();
   st.innerHTML = "";
-  c.blocks.forEach(b => {
-    const e = kbNode(b);
-    kbPaint(e, b);
+  c.blocks.forEach((b) => {
+    const e = window.kbNode(b);
+    window.kbPaint(e, b);
     st.appendChild(e);
   });
   mark();
-  st.querySelectorAll(".kb").forEach((el, i) => {
-    el.style.opacity = "0";
-    el.style.transitionDelay = `${Math.min(i, 8) * 35}ms`;
-    requestAnimationFrame(() => {
-      el.style.opacity = "1";
-    });
-  });
 }
 
 function mark() {
-  st.querySelectorAll(".rh").forEach(x => x.remove());
-  st.querySelectorAll(".kb").forEach(e => {
+  st.querySelectorAll(".rh").forEach((x) => x.remove());
+  st.querySelectorAll(".kb").forEach((e) => {
     const on = e.dataset.id === sel;
     e.classList.toggle("sel", on);
     if (on) {
@@ -159,15 +219,26 @@ function mark() {
 
 addEventListener("resize", layout);
 
-/* ----- geser & ubah ukuran ----- */
-st.addEventListener("pointerdown", ev => {
-  const rh = ev.target.closest(".rh"), n = ev.target.closest(".kb");
-  if (!n) { sel = null; mark(); return; }
-  const b = blk(n.dataset.id); sel = b.id; mark();
-  const sx = ev.clientX, sy = ev.clientY, o = { x: b.x, y: b.y, w: b.w, h: b.h }, ar = b.w / b.h;
+st.addEventListener("pointerdown", (ev) => {
+  const rh = ev.target.closest(".rh");
+  const n = ev.target.closest(".kb");
+  if (!n) {
+    sel = null;
+    mark();
+    return;
+  }
+  const b = blk(n.dataset.id);
+  sel = b.id;
+  mark();
+  const sx = ev.clientX;
+  const sy = ev.clientY;
+  const o = { x: b.x, y: b.y, w: b.w, h: b.h };
+  const ar = b.w / b.h;
   st.setPointerCapture(ev.pointerId);
-  const mv = m => {
-    const dx = (m.clientX - sx) / sc, dy = (m.clientY - sy) / sc;
+
+  const mv = (m) => {
+    const dx = (m.clientX - sx) / sc;
+    const dy = (m.clientY - sy) / sc;
     if (rh) {
       b.w = Math.max(16, Math.round(o.w + dx));
       b.h = b.t === "image" ? Math.max(16, Math.round(b.w / ar)) : Math.max(16, Math.round(o.h + dy));
@@ -175,235 +246,320 @@ st.addEventListener("pointerdown", ev => {
       b.x = Math.round(o.x + dx);
       b.y = Math.round(o.y + dy);
     }
-    kbPaint(n, b);
+    window.kbPaint(n, b);
   };
+
   const up = () => {
     st.removeEventListener("pointermove", mv);
     st.removeEventListener("pointerup", up);
   };
+
   st.addEventListener("pointermove", mv);
   st.addEventListener("pointerup", up);
 });
 
-/* ----- tambah elemen ----- */
 function addBlock(o) {
-  const b = { id: "b" + (++uid), x: 0, y: 0, w: 120, h: 120, rot: 0, fill: "#27e0a0", r: 0, bw: 0, bc: "#ffffff", sh: 0, txt: "", tc: "#04140d", ts: 18, tw: 600, tk: 0, tsh: 0, tbw: 0, tbc: "#000000", ...o };
+  const b = {
+    id: "b" + (++uid),
+    x: 0,
+    y: 0,
+    w: 120,
+    h: 120,
+    rot: 0,
+    fill: "#27e0a0",
+    r: 0,
+    bw: 0,
+    bc: "#ffffff",
+    sh: 0,
+    txt: "",
+    tc: "#04140d",
+    ts: 18,
+    tw: 600,
+    tk: 0,
+    tsh: 0,
+    tbw: 0,
+    tbc: "#000000",
+    ...o
+  };
   b.id = "b" + (++uid);
   if (o.x === undefined) b.x = Math.round((c.cw - b.w) / 2);
   if (o.y === undefined) b.y = Math.round(30 + (c.blocks.length % 6) * 30);
-  c.blocks.push(b); sel = b.id; closeSheet(); redraw();
+  c.blocks.push(b);
+  sel = b.id;
+  closeSheet();
+  redraw();
 }
 
 function addShape(k) {
-  addBlock({ t: "shape", k, w: k === "rectw" ? 200 : k === "ellipse" ? 160 : 120, h: k === "rectw" ? 80 : k === "ellipse" ? 100 : 120, r: k === "round" ? 20 : 0 });
+  addBlock({
+    t: "shape",
+    k,
+    w: k === "rectw" ? 200 : k === "ellipse" ? 160 : 120,
+    h: k === "rectw" ? 80 : k === "ellipse" ? 100 : 120,
+    r: k === "round" ? 20 : 0
+  });
 }
 
 function addText(inside) {
   const b = cur();
   if (inside && b && b.t === "shape") {
     b.txt = b.txt || "Teks";
-    kbPaint(nodeOf(b), b);
+    window.kbPaint(nodeOf(b), b);
     sheet("text");
     return;
   }
   addBlock({ t: "text", w: 220, h: 60, txt: "Teks baru", tc: "#ffffff", ts: 24 });
 }
 
-function pickImg() {
-  const f = $("#fi"); f.accept = "image/png,image/jpeg";
-  f.onchange = () => {
-    const file = f.files[0]; if (!file) return;
-    const im = new Image(), u = URL.createObjectURL(file);
-    im.onload = () => {
-      const s = Math.min(1, 700 / Math.max(im.width, im.height)), cv = document.createElement("canvas");
-      cv.width = Math.round(im.width * s); cv.height = Math.round(im.height * s);
-      cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
-      const src = cv.toDataURL(file.type === "image/png" ? "image/png" : "image/jpeg", .8);
-      URL.revokeObjectURL(u);
-      const w = Math.min(240, c.cw - 40);
-      addBlock({ t: "image", src, w, h: Math.round(w * im.height / im.width) });
-    };
-    im.src = u; f.value = "";
-  };
-  f.click();
-}
-
-function pickDoc() {
-  const f = $("#fi"); f.accept = "";
-  f.onchange = () => {
-    const file = f.files[0]; if (!file) return;
-    if (file.size > 1048576) { alert("Ukuran file maksimal 1 MB."); f.value = ""; return; }
-    const chosenFolder = $("#targetFolderSel") ? $("#targetFolderSel").value : "";
-    const r = new FileReader();
-    r.onload = () => {
-      c.files.push({ name: file.name, size: file.size, data: r.result, folderId: chosenFolder });
-      if (chosenFolder) openFld.add(chosenFolder);
-      drawFiles(); closeSheet();
-    };
-    r.readAsDataURL(file); f.value = "";
-  };
-  f.click();
-}
-
-function drawFiles() {
-  const gEl = $("#folderGroups");
-  if (gEl) {
-    if (!c.folders.length) {
-      gEl.innerHTML = `<div class="f-card"><span class="f-cnt">Belum ada folder. Klik "+ Buat Folder" untuk membuat folder.</span></div>`;
-    } else {
-      gEl.innerHTML = c.folders.map(fld => {
-        const items = c.files.map((x, i) => ({ x, i })).filter(it => it.x.folderId === fld.id);
-        const isOpen = openFld.has(fld.id);
-        return `<div class="f-card"><div class="f-head" onclick="toggleFolderOpen('${esc(fld.id)}')"><span>📁 ${esc(fld.name)}</span><span class="f-cnt">${items.length} file · ${isOpen ? "▲" : "▼"}</span></div>${isOpen ? `<div class="f-body">${items.length ? items.map(it => fileItemHtml(it.x, it.i)).join("") : `<span class="f-cnt">Folder kosong. Pilih folder ini pada file untuk memasukkannya.</span>`}</div>` : ""}</div>`;
-      }).join("");
+function pickCanvasImageUpload() {
+  const inp = document.createElement("input");
+  inp.type = "file";
+  inp.accept = "image/*";
+  inp.onchange = async () => {
+    const file = inp.files[0];
+    if (!file) return;
+    const ok = await ensureAdminAccess();
+    if (!ok) return;
+    try {
+      const uploaded = await uploadSeparatedFile(file, "media");
+      c.mediaFiles.push(uploaded);
+      renderAllSeparatedLists();
+      const im = new Image();
+      im.onload = () => {
+        const w = Math.min(240, c.cw - 40);
+        addBlock({ t: "image", src: uploaded.url, w, h: Math.round(w * im.height / im.width) });
+      };
+      im.src = uploaded.url;
+    } catch (err) {
+      alert("Gagal upload gambar kanvas: " + err.message);
     }
-  }
-  const loose = c.files.map((x, i) => ({ x, i })).filter(it => !it.x.folderId);
-  $("#files").innerHTML = loose.length ? loose.map(it => fileItemHtml(it.x, it.i)).join("") : `<div class="f-cnt">Tidak ada file di luar folder.</div>`;
-  document.querySelectorAll("#folderGroups .f-card, #files .file-row").forEach((el, i) => {
-    el.style.opacity = "0";
-    el.style.transform = "translateY(8px)";
-    el.style.transitionDelay = `${Math.min(i, 8) * 35}ms`;
-    requestAnimationFrame(() => {
-      el.style.opacity = "1";
-      el.style.transform = "translateY(0)";
-    });
-  });
+  };
+  inp.click();
 }
 
-function dup() { const b = cur(); if (!b) return alert("Pilih elemen dulu."); addBlock({ ...b, id: undefined, x: b.x + 20, y: b.y + 20 }); }
-function del() { const b = cur(); if (!b) return alert("Pilih elemen dulu."); c.blocks = c.blocks.filter(x => x !== b); sel = null; redraw(); }
+function dup() {
+  const b = cur();
+  if (!b) return alert("Pilih elemen dulu.");
+  addBlock({ ...b, id: undefined, x: b.x + 20, y: b.y + 20 });
+}
 
-/* ----- panel ----- */
+function del() {
+  const b = cur();
+  if (!b) return alert("Pilih elemen dulu.");
+  c.blocks = c.blocks.filter((x) => x !== b);
+  sel = null;
+  redraw();
+}
+
 const SLD = {
-  size: ["Ukuran & Posisi", [["x", "Posisi X", -100, 460, "px"], ["y", "Posisi Y", -100, 1000, "px"], ["w", "Lebar", 16, 500, "px"], ["h", "Tinggi", 16, 700, "px"], ["rot", "Rotasi", -180, 180, "°"]]],
-  border: ["Border & Bayangan", [["bw", "Tebal border", 0, 12, "px"], ["sh", "Bayangan", 0, 40, "px"]]],
-  text: ["Teks", [["ts", "Ukuran teks", 8, 96, "px"], ["tw", "Ketebalan", 100, 900, ""], ["tk", "Kemiringan", -30, 30, "°"], ["tsh", "Bayangan teks", 0, 20, "px"], ["tbw", "Border teks", 0, 6, "px"]]]
+  size: ["Ukuran & Posisi", [["x","Posisi X",-100,460,"px"],["y","Posisi Y",-100,1000,"px"],["w","Lebar",16,500,"px"],["h","Tinggi",16,700,"px"],["rot","Rotasi",-180,180,"°"]]],
+  border: ["Border & Bayangan", [["bw","Tebal border",0,12,"px"],["sh","Bayangan",0,40,"px"]]],
+  text: ["Teks", [["ts","Ukuran teks",8,96,"px"],["tw","Ketebalan",100,900,""],["tk","Kemiringan",-30,30,"°"],["tsh","Bayangan teks",0,20,"px"],["tbw","Border teks",0,6,"px"]]]
 };
 
-const head = t => `<div class="sh-h"><span>${t}</span><button onclick="closeSheet()">✕</button></div>`;
-const sliders = (k, b) => SLD[k][1].map(([p, n, a, z, u]) => `<label>${n}<span id="v_${p}">${b[p]}${u}</span></label><input type="range" min="${a}" max="${z}" step="${p === "tw" ? 100 : 1}" value="${b[p]}" oninput="setP('${p}',this.value,'${u}')">`).join("");
+const head = (t) => `<div class="sh-h"><span>${t}</span><button type="button" id="closeSheetBtn">✕</button></div>`;
+const sliders = (k, b) => SLD[k][1].map(([p, n, a, z, u]) => `
+  <label>${n}<span id="v_${p}">${b[p]}${u}</span></label>
+  <input type="range" min="${a}" max="${z}" step="${p === "tw" ? 100 : 1}" value="${b[p]}" data-prop="${p}" data-unit="${u}">
+`).join("");
 
 function sheet(k) {
-  const s = $("#sheet"), b = cur(); let h = "";
+  const s = $("#sheet");
+  const b = cur();
+  let h = "";
+
   if (k === "add") {
-    h = head("Tambah Elemen") + `<div class="grid">${KB_SHAPES.map(([id, n, i]) => `<button onclick="addShape('${id}')"><span>${i}</span>${n}</button>`).join("")}</div>` +
-      (b && b.t === "shape" ? `<button class="wide" onclick="addText(1)">✍️ Teks di dalam elemen terpilih</button><button class="wide" onclick="addText(0)">Aa Teks terpisah</button>` : `<button class="wide" onclick="addText(0)">Aa Tambah Teks</button>`) +
-      `<button class="wide" onclick="pickImg()">🖼 Gambar (PNG/JPG)</button><button class="wide" onclick="pickDoc()">📄 Lampirkan dokumen (PDF, DOCX, TXT, PPT...)</button>`;
+    const shapes = (window.KB_SHAPES || []).map(([id, n, i]) =>
+      `<button type="button" data-add-shape="${id}"><span>${i}</span>${n}</button>`
+    ).join("");
+    h = head("Tambah Elemen") +
+      `<div class="grid">${shapes}</div>` +
+      (b && b.t === "shape"
+        ? `<button type="button" class="wide" id="addTextInsideBtn">✍️ Teks di dalam elemen terpilih</button><button type="button" class="wide" id="addTextFreeBtn">Aa Teks terpisah</button>`
+        : `<button type="button" class="wide" id="addTextFreeBtn">Aa Tambah Teks</button>`) +
+      `<button type="button" class="wide" id="addCanvasImgBtn">🖼 Gambar (unggah ke media/)</button>`;
   } else if (k === "canvas") {
-    h = head("Kanvas") + `<label>Tinggi kanvas<span id="v_ch">${c.ch}px</span></label><input type="range" min="200" max="1400" value="${c.ch}" oninput="c.ch=+this.value;$('#v_ch').textContent=this.value+'px';layout()"><label>Warna latar</label><input type="color" value="${c.bg}" oninput="c.bg=this.value;layout()">`;
+    h = head("Kanvas") +
+      `<label>Tinggi kanvas<span id="v_ch">${c.ch}px</span></label><input type="range" min="200" max="1400" value="${c.ch}" id="canvasHeightRange">` +
+      `<label>Warna latar</label><input type="color" value="${c.bg}" id="canvasBgColor">`;
   } else if (!b) {
     return alert("Pilih elemen dulu (ketuk elemen di kanvas, atau tambah dengan tombol ＋).");
   } else if (k === "size" || k === "border") {
-    h = head(SLD[k][0]) + sliders(k, b) + (k === "border" ? `<label>Warna border</label><input type="color" value="${b.bc}" oninput="setP('bc',this.value,'',1)"><p class="note">Border terlihat jelas pada persegi, lingkaran, dan gambar.</p>` : "");
+    h = head(SLD[k][0]) + sliders(k, b) + (k === "border"
+      ? `<label>Warna border</label><input type="color" value="${b.bc}" id="borderColorPick"><p class="note">Border terlihat jelas pada persegi, lingkaran, dan gambar.</p>`
+      : "");
   } else if (k === "color") {
-    if (b.t === "text") h = head("Warna & Bentuk") + `<p class="note">Warna teks diatur di menu Teks.</p>`;
-    else {
+    if (b.t === "text") {
+      h = head("Warna & Bentuk") + `<p class="note">Warna teks diatur di menu Teks.</p>`;
+    } else {
       const rad = b.t === "image" || ["rect", "rectw", "round"].includes(b.k);
-      h = head("Warna & Bentuk") + (b.t === "shape" ? `<div class="sw">${COLORS.map(x => `<div style="background:${x}" onclick="setP('fill','${x}','',1)"></div>`).join("")}</div><label>Warna kustom</label><input type="color" value="${/^#/.test(b.fill) ? b.fill : "#27e0a0"}" oninput="setP('fill',this.value,'',1)">` : "") +
-        (rad ? `<label>Radius sudut (ketik, misal 20px)</label><input type="text" value="${b.r}px" onchange="setP('r',parseFloat(this.value)||0,'',1)">` : `<p class="note">Bentuk ini tidak punya radius.</p>`);
+      h = head("Warna & Bentuk") +
+        (b.t === "shape"
+          ? `<div class="sw">${COLORS.map((x) => `<div style="background:${x}" data-swatch="${x}"></div>`).join("")}</div><label>Warna kustom</label><input type="color" value="${/^#/.test(b.fill) ? b.fill : "#27e0a0"}" id="customFillPick">`
+          : "") +
+        (rad ? `<label>Radius sudut (misal 20px)</label><input type="text" value="${b.r}px" id="radiusPick">` : `<p class="note">Bentuk ini tidak punya radius.</p>`);
     }
   } else if (k === "text") {
-    if (b.t === "image") h = head("Teks") + `<p class="note">Gambar tidak punya teks. Tambahkan teks terpisah lewat tombol ＋.</p>`;
-    else h = head("Teks") + `<label>Isi teks</label><textarea rows="2" oninput="cur().txt=this.value;kbPaint(nodeOf(cur()),cur())">${esc(b.txt)}</textarea>` + sliders("text", b) + `<label>Warna teks</label><input type="color" value="${b.tc}" oninput="setP('tc',this.value,'',1)"><label>Warna border teks</label><input type="color" value="${b.tbc}" oninput="setP('tbc',this.value,'',1)">`;
+    if (b.t === "image") {
+      h = head("Teks") + `<p class="note">Gambar tidak punya teks. Tambahkan teks terpisah lewat tombol ＋.</p>`;
+    } else {
+      h = head("Teks") +
+        `<label>Isi teks</label><textarea rows="2" id="blockTextInput">${esc(b.txt)}</textarea>` +
+        sliders("text", b) +
+        `<label>Warna teks</label><input type="color" value="${b.tc}" id="textColorPick">` +
+        `<label>Warna border teks</label><input type="color" value="${b.tbc}" id="textBorderColorPick">`;
+    }
   }
-  s.innerHTML = h; s.classList.add("on");
+
+  s.innerHTML = h;
+  s.classList.add("on");
+  bindSheetEvents();
 }
 
-function closeSheet() { $("#sheet").classList.remove("on"); }
-function setP(p, v, u, raw) { const b = cur(); b[p] = raw ? v : +v; const o = $("#v_" + p); if (o) o.textContent = v + u; kbPaint(nodeOf(b), b); }
+function bindSheetEvents() {
+  const s = $("#sheet");
+  $("#closeSheetBtn")?.addEventListener("click", closeSheet);
 
-$("#modeKonten").onclick = () => setDestMode("konten");
-$("#modeBeranda").onclick = () => setDestMode("beranda");
-$("#btnNewFolder").onclick = () => toggleFolderBox(true);
-$("#saveFolderBtn").onclick = addFolder;
-$("#cancelFolderBtn").onclick = () => toggleFolderBox(false);
-$("#newFolderInp").onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); addFolder(); } };
+  s.querySelectorAll("[data-add-shape]").forEach((btn) => {
+    btn.addEventListener("click", () => addShape(btn.getAttribute("data-add-shape")));
+  });
+  $("#addTextInsideBtn")?.addEventListener("click", () => addText(true));
+  $("#addTextFreeBtn")?.addEventListener("click", () => addText(false));
+  $("#addCanvasImgBtn")?.addEventListener("click", pickCanvasImageUpload);
 
-function resizeDesc() {
-  const d = $("#desc");
-  if (!d) return;
-  d.style.height = "auto";
-  d.style.height = Math.max(84, d.scrollHeight) + "px";
+  $("#canvasHeightRange")?.addEventListener("input", (e) => {
+    c.ch = +e.target.value;
+    $("#v_ch").textContent = e.target.value + "px";
+    layout();
+  });
+  $("#canvasBgColor")?.addEventListener("input", (e) => {
+    c.bg = e.target.value;
+    layout();
+  });
+
+  s.querySelectorAll("input[type=range][data-prop]").forEach((inp) => {
+    inp.addEventListener("input", () => {
+      const p = inp.getAttribute("data-prop");
+      const u = inp.getAttribute("data-unit") || "";
+      const b = cur();
+      if (!b) return;
+      b[p] = +inp.value;
+      const vEl = $("#v_" + p);
+      if (vEl) vEl.textContent = inp.value + u;
+      window.kbPaint(nodeOf(b), b);
+    });
+  });
+
+  $("#borderColorPick")?.addEventListener("input", (e) => {
+    const b = cur();
+    if (!b) return;
+    b.bc = e.target.value;
+    window.kbPaint(nodeOf(b), b);
+  });
+
+  s.querySelectorAll("[data-swatch]").forEach((sw) => {
+    sw.addEventListener("click", () => {
+      const b = cur();
+      if (!b) return;
+      b.fill = sw.getAttribute("data-swatch");
+      window.kbPaint(nodeOf(b), b);
+    });
+  });
+
+  $("#customFillPick")?.addEventListener("input", (e) => {
+    const b = cur();
+    if (!b) return;
+    b.fill = e.target.value;
+    window.kbPaint(nodeOf(b), b);
+  });
+
+  $("#radiusPick")?.addEventListener("change", (e) => {
+    const b = cur();
+    if (!b) return;
+    b.r = parseFloat(e.target.value) || 0;
+    window.kbPaint(nodeOf(b), b);
+  });
+
+  $("#blockTextInput")?.addEventListener("input", (e) => {
+    const b = cur();
+    if (!b) return;
+    b.txt = e.target.value;
+    window.kbPaint(nodeOf(b), b);
+  });
+
+  $("#textColorPick")?.addEventListener("input", (e) => {
+    const b = cur();
+    if (!b) return;
+    b.tc = e.target.value;
+    window.kbPaint(nodeOf(b), b);
+  });
+
+  $("#textBorderColorPick")?.addEventListener("input", (e) => {
+    const b = cur();
+    if (!b) return;
+    b.tbc = e.target.value;
+    window.kbPaint(nodeOf(b), b);
+  });
 }
 
-if ($("#desc")) {
-  $("#desc").addEventListener("input", resizeDesc);
-  resizeDesc();
+function closeSheet() {
+  $("#sheet").classList.remove("on");
 }
 
-async function adminCommit(saveFn) {
-  if (!window.AlcrazhyAuth) {
-    alert("Modul firebase-auth.js belum dimuat.");
-    return false;
-  }
-  const loggedIn = await window.AlcrazhyAuth.requireAdminLogin();
-  if (!loggedIn) {
-    alert("Aksi dibatalkan: harus login admin terlebih dahulu.");
-    return false;
-  }
-  try {
-    await saveFn();
-    return true;
-  } catch (err) {
-    alert(err.message || "Gagal menyimpan ke GitHub.");
-    return false;
-  }
-}
+$("#toolSizeBtn").addEventListener("click", () => sheet("size"));
+$("#toolColorBtn").addEventListener("click", () => sheet("color"));
+$("#toolTextBtn").addEventListener("click", () => sheet("text"));
+$("#toolBorderBtn").addEventListener("click", () => sheet("border"));
+$("#toolCanvasBtn").addEventListener("click", () => sheet("canvas"));
+$("#toolDupBtn").addEventListener("click", dup);
+$("#toolDelBtn").addEventListener("click", del);
+$("#openAddSheetBtn").addEventListener("click", () => sheet("add"));
 
-$("#pub").onclick = async () => {
+// =========================================================
+// TERBITKAN TERPISAH: KONTEN vs BERANDA
+// =========================================================
+$("#pub").addEventListener("click", async () => {
   const title = $("#title").value.trim();
-  if (!title) { alert("Judul wajib diisi."); return; }
+  if (!title) {
+    alert("Judul wajib diisi.");
+    return;
+  }
 
-  await adminCommit(async () => {
-    let D = {};
-    try { D = JSON.parse(localStorage.getItem("alcrazhyCommunity") || "{}"); } catch (e) {}
-    if (!Array.isArray(D.contents)) D.contents = def.map(x => ({ ...x }));
-    if (!Array.isArray(D.announcements)) D.announcements = [];
-    D.folders = c.folders;
+  const ok = await ensureAdminAccess();
+  if (!ok) return;
 
+  const btn = $("#pub");
+  btn.disabled = true;
+  btn.textContent = "Menyimpan...";
+
+  try {
     const rawCat = $("#cat").value.trim();
-    const catVal = destMode === "beranda" ? (rawCat || "Pengumuman") : (rawCat || "Umum");
-    const customDesc = $("#desc") ? $("#desc").value.trim() : "";
-    const descVal = customDesc || (destMode === "beranda" ? "Pengumuman beranda" : "Konten visual");
+    const category = destMode === "beranda" ? (rawCat || "Pengumuman") : (rawCat || "Umum");
+    const descVal = $("#desc").value.trim();
 
-    const payload = {
-      id: Date.now(),
-      target: destMode,
+    await saveSeparatedEntry(destMode, {
       title,
-      category: catVal,
+      category,
       desc: descVal,
-      media: "",
+      textBody: descVal,
       cw: c.cw,
       ch: c.ch,
       bg: c.bg,
       blocks: c.blocks,
-      files: c.files,
-      folders: c.folders
-    };
+      mediaFiles: c.mediaFiles,
+      docFiles: c.docFiles,
+      otherFiles: c.otherFiles
+    });
 
-    if (destMode === "beranda") {
-      D.announcements.unshift(payload);
-    } else {
-      D.contents.unshift(payload);
-    }
-
-    try {
-      localStorage.setItem("alcrazhyCommunity", JSON.stringify(D));
-    } catch (e) {
-      alert("Penyimpanan penuh. Kecilkan gambar atau hapus lampiran.");
-      return;
-    }
-
-    if (window.AlcrazhyGitHub && typeof window.AlcrazhyGitHub.saveCommunityData === "function") {
-      await window.AlcrazhyGitHub.saveCommunityData(D, "Publish konten / pengumuman komunitas");
-    }
-
-    alert(destMode === "beranda" ? "Pengumuman Beranda berhasil diterbitkan!" : "Konten berhasil diterbitkan!");
+    alert(destMode === "beranda" ? "Postingan Beranda berhasil diterbitkan!" : "Konten berhasil diterbitkan!");
     location.href = "index.html";
-  });
-};
+  } catch (err) {
+    alert("Gagal menerbitkan: " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Terbitkan";
+  }
+});
 
-renderFolderSelect();
-drawFiles();
+renderAllSeparatedLists();
 redraw();
