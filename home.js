@@ -87,62 +87,89 @@ async function applySiteHeaderAndUI() {
 }
 
 // =========================================================
-// RENDER FILE TERPISAH (MEDIA / DOKUMEN / UNGGAHAN LAIN)
+// KOMPONEN ALUR: JUDUL -> LINK -> MEDIA -> DESKRIPSI -> FILE
 // =========================================================
-function renderSeparatedFileGroups(item) {
+function extractLink(item) {
+  if (item && item.link) return String(item.link).trim();
+  const m = String(item?.desc || item?.textBody || "").match(/https?:\/\/[^\s<]+/i);
+  return m ? m[0] : "";
+}
+
+function renderLinkBlock(item) {
+  const url = extractLink(item);
+  if (!url) return "";
+  return `<div style="margin-top:8px;">
+    <a href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="color:var(--green);text-decoration:underline;word-break:break-all;font-size:13px;">${esc(url)}</a>
+  </div>`;
+}
+
+function renderMediaBlock(item, force16by9 = false) {
   const mediaList = Array.isArray(item.mediaFiles) ? item.mediaFiles : [];
+  if (!mediaList.length) return "";
+  const ratioCss = force16by9 ? "aspect-ratio:16/9;width:100%;object-fit:cover;display:block;" : "width:100%;max-height:280px;object-fit:cover;display:block;";
+  const itemsHtml = mediaList.map((m) => {
+    const isImg = /^image\//i.test(m.type || "") || /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(m.name || m.url || "");
+    if (isImg) {
+      return `<a href="${esc(m.url)}" target="_blank" rel="noopener" style="display:block;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#090b10;">
+        <img src="${esc(m.url)}" alt="${esc(m.name)}" style="${ratioCss}">
+      </a>`;
+    }
+    return `<a href="${esc(m.url)}" target="_blank" rel="noopener" style="display:block;padding:10px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--text);text-decoration:none;font-size:13px;">
+      🎬 ${esc(m.name)}
+    </a>`;
+  }).join("");
+
+  return `<div style="margin-top:10px;display:grid;gap:8px;">${itemsHtml}</div>`;
+}
+
+function renderDescriptionBlock(item) {
+  const text = item.desc || item.textBody || "";
+  if (!text) return "";
+  return `<p class="post-text" style="margin-top:10px;">${formatText(text)}</p>`;
+}
+
+function renderFilesBlock(item) {
   const docList = Array.isArray(item.docFiles) ? item.docFiles : [];
   const otherList = Array.isArray(item.otherFiles) ? item.otherFiles : [];
+  const allFiles = [...docList, ...otherList];
+  if (!allFiles.length) return "";
 
-  const parts = [];
+  const links = allFiles.map((f) => `
+    <a href="${esc(f.url)}" target="_blank" rel="noopener" download="${esc(f.name)}" style="display:block;padding:10px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--text);text-decoration:none;font-size:13px;">
+      📎 ${esc(f.name)} <span style="color:var(--muted);font-size:11px;">(${Math.max(1, Math.round((f.size || 0) / 1024))} KB)</span>
+    </a>
+  `).join("");
 
-  if (mediaList.length) {
-    const imgs = mediaList.map((m) => {
-      const isImg = /^image\//i.test(m.type || "") || /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(m.name || m.url || "");
-      if (isImg) {
-        return `<a href="${esc(m.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="display:block;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#090b10;">
-          <img src="${esc(m.url)}" alt="${esc(m.name)}" style="width:100%;max-height:280px;object-fit:cover;display:block;">
-        </a>`;
+  return `<div style="margin-top:10px;display:grid;gap:8px;">${links}</div>`;
+}
+
+function createAdminDeleteButton(target, item, onAfterDelete) {
+  if (!isAdmin) return null;
+  const delBtn = document.createElement("button");
+  delBtn.type = "button";
+  delBtn.textContent = "🗑 Hapus";
+  delBtn.style.cssText = "margin-top:10px;padding:7px 12px;background:#2a1517;color:#ef4444;border:1px solid #5a2222;border-radius:8px;font:600 12px 'DM Sans',sans-serif;cursor:pointer;";
+  delBtn.addEventListener("click", async (ev) => {
+    ev.stopPropagation();
+    if (!confirm(`Hapus "${item.title}"?`)) return;
+    try {
+      if (target === "beranda") {
+        berandaPosts = await deleteSeparatedEntry("beranda", item.id);
+      } else {
+        kontenItems = await deleteSeparatedEntry("konten", item.id);
       }
-      return `<a href="${esc(m.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="display:block;padding:10px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--text);text-decoration:none;font-size:13px;">
-        🎬 ${esc(m.name)}
-      </a>`;
-    }).join("");
-    parts.push(`<div style="margin-top:12px;display:grid;gap:8px;">
-      <div style="font-size:11px;color:var(--accent);font-weight:700;letter-spacing:1px;">MEDIA (${mediaList.length})</div>
-      ${imgs}
-    </div>`);
-  }
-
-  if (docList.length) {
-    const docs = docList.map((d) => `
-      <a href="${esc(d.url)}" target="_blank" rel="noopener" download="${esc(d.name)}" onclick="event.stopPropagation()" style="display:block;padding:10px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--text);text-decoration:none;font-size:13px;">
-        📄 ${esc(d.name)} <span style="color:var(--muted);font-size:11px;">(${Math.max(1, Math.round((d.size || 0) / 1024))} KB)</span>
-      </a>
-    `).join("");
-    parts.push(`<div style="margin-top:12px;display:grid;gap:8px;">
-      <div style="font-size:11px;color:var(--green);font-weight:700;letter-spacing:1px;">DOKUMEN PDF / TXT / DOCS (${docList.length})</div>
-      ${docs}
-    </div>`);
-  }
-
-  if (otherList.length) {
-    const others = otherList.map((o) => `
-      <a href="${esc(o.url)}" target="_blank" rel="noopener" download="${esc(o.name)}" onclick="event.stopPropagation()" style="display:block;padding:10px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--text);text-decoration:none;font-size:13px;">
-        📦 ${esc(o.name)} <span style="color:var(--muted);font-size:11px;">(${Math.max(1, Math.round((o.size || 0) / 1024))} KB)</span>
-      </a>
-    `).join("");
-    parts.push(`<div style="margin-top:12px;display:grid;gap:8px;">
-      <div style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1px;">UNGGAHAN LAIN (${otherList.length})</div>
-      ${others}
-    </div>`);
-  }
-
-  return parts.join("");
+      onAfterDelete();
+      renderGaleriMedia();
+      showToast("Item berhasil dihapus.");
+    } catch (err) {
+      showToast("Gagal hapus: " + err.message);
+    }
+  });
+  return delBtn;
 }
 
 // =========================================================
-// RENDER BERANDA (TERPISAH DARI KONTEN)
+// RENDER BERANDA: JUDUL -> LINK -> MEDIA (16:9) -> DESKRIPSI -> FILE
 // =========================================================
 function renderBerandaFeed() {
   const feed = $("#announcementFeed");
@@ -161,10 +188,6 @@ function renderBerandaFeed() {
     const card = document.createElement("article");
     card.className = "post-card ac-show";
     card.style.setProperty("--ac-delay", `${Math.min(idx, 8) * 50}ms`);
-    card.style.cursor = "pointer";
-
-    const hasBlocks = Array.isArray(item.blocks) && item.blocks.length > 0 && typeof window.renderKonten === "function";
-    const bodyText = item.textBody || item.desc || "";
 
     card.innerHTML = `
       <div class="post-author">
@@ -173,24 +196,21 @@ function renderBerandaFeed() {
           <strong>${esc(item.title || "Tanpa Judul")}</strong>
           <small>${esc(item.category || "Beranda")}</small>
         </div>
-        <span class="more">Buka</span>
       </div>
-      ${bodyText ? `<p class="post-text">${formatText(bodyText)}</p>` : ""}
-      ${hasBlocks ? `<div class="beranda-canvas-host" style="margin-top:10px;"></div>` : ""}
-      ${renderSeparatedFileGroups(item)}
+      ${renderLinkBlock(item)}
+      ${renderMediaBlock(item, true)}
+      ${renderDescriptionBlock(item)}
+      ${renderFilesBlock(item)}
     `;
 
-    if (hasBlocks) {
-      window.renderKonten(card.querySelector(".beranda-canvas-host"), { ...item, files: [] });
-    }
-
-    card.addEventListener("click", () => openItemModal("beranda", item));
+    const delBtn = createAdminDeleteButton("beranda", item, renderBerandaFeed);
+    if (delBtn) card.appendChild(delBtn);
     feed.appendChild(card);
   });
 }
 
 // =========================================================
-// RENDER LIST KONTEN (TERPISAH DARI BERANDA)
+// RENDER LIST KONTEN: JUDUL -> LINK -> MEDIA -> DESKRIPSI -> FILE (+ KANVAS)
 // =========================================================
 function renderKontenList(query = "") {
   const listEl = $("#contentListContainer");
@@ -202,6 +222,7 @@ function renderKontenList(query = "") {
     String(item.title || "").toLowerCase().includes(q) ||
     String(item.category || "").toLowerCase().includes(q) ||
     String(item.desc || "").toLowerCase().includes(q) ||
+    String(item.link || "").toLowerCase().includes(q) ||
     String(item.textBody || "").toLowerCase().includes(q)
   );
 
@@ -214,28 +235,34 @@ function renderKontenList(query = "") {
   }
 
   filtered.forEach((item, idx) => {
-    const row = document.createElement("div");
-    row.className = "member-row ac-show";
-    row.style.setProperty("--ac-delay", `${Math.min(idx, 8) * 45}ms`);
-    row.style.cursor = "pointer";
+    const card = document.createElement("article");
+    card.className = "post-card ac-show";
+    card.style.setProperty("--ac-delay", `${Math.min(idx, 8) * 45}ms`);
 
-    const mCnt = (item.mediaFiles || []).length;
-    const dCnt = (item.docFiles || []).length;
-    const oCnt = (item.otherFiles || []).length;
-    const infoText = item.desc || item.textBody || "";
+    const hasBlocks = Array.isArray(item.blocks) && item.blocks.length > 0 && typeof window.renderKonten === "function";
 
-    row.innerHTML = `
-      <div class="member-avatar">${esc((item.title || "K").charAt(0).toUpperCase())}</div>
-      <div class="member-info">
-        <strong>${esc(item.title || "Tanpa Judul")}</strong>
-        <small>${esc(item.category || "Konten")} • Media:${mCnt} • Dok:${dCnt} • Lain:${oCnt}</small>
-        ${infoText ? `<small style="color:#c3c9d3;">${esc(infoText.slice(0, 90))}</small>` : ""}
+    card.innerHTML = `
+      <div class="post-author">
+        <div class="mini-avatar">${esc((item.title || "K").charAt(0).toUpperCase())}</div>
+        <div>
+          <strong>${esc(item.title || "Tanpa Judul")}</strong>
+          <small>${esc(item.category || "Konten")}</small>
+        </div>
       </div>
-      <span class="role">BUKA</span>
+      ${renderLinkBlock(item)}
+      ${renderMediaBlock(item, false)}
+      ${hasBlocks ? `<div class="konten-canvas-host" style="margin-top:10px;"></div>` : ""}
+      ${renderDescriptionBlock(item)}
+      ${renderFilesBlock(item)}
     `;
 
-    row.addEventListener("click", () => openItemModal("konten", item));
-    listEl.appendChild(row);
+    if (hasBlocks) {
+      window.renderKonten(card.querySelector(".konten-canvas-host"), { ...item, files: [] });
+    }
+
+    const delBtn = createAdminDeleteButton("konten", item, () => renderKontenList($("#contentSearch")?.value || ""));
+    if (delBtn) card.appendChild(delBtn);
+    listEl.appendChild(card);
   });
 }
 
@@ -291,57 +318,6 @@ function renderGaleriMedia() {
 
     grid.appendChild(tile);
   });
-}
-
-// =========================================================
-// MODAL DETAIL & HAPUS PER ITEM
-// =========================================================
-function openItemModal(target, item) {
-  const modal = $("#contentDetailModal");
-  const body = $("#detailContentBody");
-  if (!modal || !body) return;
-
-  const fullText = item.textBody || item.desc || "";
-  const hasBlocks = Array.isArray(item.blocks) && item.blocks.length > 0 && typeof window.renderKonten === "function";
-
-  body.innerHTML = `
-    <span style="font-size:10px;letter-spacing:2px;color:var(--accent);font-weight:800;text-transform:uppercase;">${esc(target.toUpperCase())} • ${esc(item.category || "")}</span>
-    <h1 style="font:700 24px 'Space Grotesk',sans-serif;margin:8px 0 14px;color:var(--text);">${esc(item.title || "Tanpa Judul")}</h1>
-    ${fullText ? `<p id="modalFullText" style="font-size:14px;line-height:1.7;color:#c3c9d3;margin-top:10px;">${formatText(fullText)}</p>` : ""}
-    <div id="modalCanvasHost" style="margin:14px 0;"></div>
-    <div id="modalFilesHost">${renderSeparatedFileGroups(item)}</div>
-  `;
-
-  if (hasBlocks) {
-    window.renderKonten(body.querySelector("#modalCanvasHost"), { ...item, files: [] });
-  }
-
-  if (isAdmin) {
-    const delBtn = document.createElement("button");
-    delBtn.type = "button";
-    delBtn.textContent = "🗑 Hapus Item Ini";
-    delBtn.style.cssText = "margin-top:20px;width:100%;padding:12px;background:#2a1517;color:#ef4444;border:1px solid #5a2222;border-radius:10px;font:600 14px 'DM Sans',sans-serif;cursor:pointer;";
-    delBtn.addEventListener("click", async () => {
-      if (!confirm(`Hapus "${item.title}"?`)) return;
-      try {
-        if (target === "beranda") {
-          berandaPosts = await deleteSeparatedEntry("beranda", item.id);
-          renderBerandaFeed();
-        } else {
-          kontenItems = await deleteSeparatedEntry("konten", item.id);
-          renderKontenList($("#contentSearch")?.value || "");
-        }
-        renderGaleriMedia();
-        modal.style.display = "none";
-        showToast("Item berhasil dihapus.");
-      } catch (err) {
-        showToast("Gagal hapus: " + err.message);
-      }
-    });
-    body.appendChild(delBtn);
-  }
-
-  modal.style.display = "block";
 }
 
 // =========================================================
@@ -442,6 +418,8 @@ function initAllButtons() {
       btn.textContent = admin ? "⎋" : "🔑";
       btn.title = admin ? "Logout Admin" : "Login Admin";
     }
+    renderBerandaFeed();
+    renderKontenList($("#contentSearch")?.value || "");
   });
 }
 
