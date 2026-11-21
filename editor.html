@@ -11,10 +11,7 @@
 <body>
 <header class="top">
   <a href="index.html" class="ib">←</a>
-  <div class="seg">
-    <button type="button" id="mK" class="on">Kartu</button>
-    <button type="button" id="mH">Halaman Utama</button>
-  </div>
+  <div class="ttl">Editor Halaman Utama</div>
   <button type="button" class="save" id="saveEditorBtn">Simpan</button>
 </header>
 
@@ -32,34 +29,15 @@
 </section>
 
 <main class="viewport">
-  <div class="stage" id="stage">
-    <div class="card lyr" id="profile" data-id="profile">
-      <div class="banner" id="pBanner"></div>
-      <div class="pmain">
-        <img id="pAvatar" alt="">
-        <h2 id="pName"></h2>
-        <p id="pHandle"></p>
-        <p id="pBio" class="bio"></p>
-      </div>
-    </div>
-  </div>
-  <div class="stage pg" id="pstage" style="display:none">
+  <div class="stage pg" id="pstage">
     <div id="fw"><iframe id="frame" src="index.html"></iframe></div>
   </div>
 </main>
 
-<div class="play">
-  <button type="button" class="pbtn" id="playBtn">▶</button>
-  <span class="time"><b id="tNow">0:00.0</b> / <span id="tTot">0:10.0</span></span>
-  <span class="cnt" id="cnt"></span>
-</div>
-
-<div class="chips" id="chips" style="display:none"></div>
+<div class="chips" id="chips"></div>
 <section class="tl" id="tl">
   <div class="tlin" id="tlin">
-    <div class="ruler" id="ruler"></div>
     <div class="tracks" id="tracks"></div>
-    <div class="head" id="head"></div>
   </div>
 </section>
 
@@ -69,11 +47,10 @@
   <button type="button" data-sheet="border"><i>▢</i>Border &amp; Bayangan</button>
   <button type="button" data-sheet="blend"><i>▧</i>Blending &amp; Opacity</button>
   <button type="button" data-sheet="edit"><i>✏️</i>Edit Konten</button>
-  <button type="button" id="bDup"><i>⧉</i>Duplikat</button>
-  <button type="button" id="bDel" class="del"><i>🗑</i>Hapus</button>
+  <button type="button" id="bReset"><i>↺</i>Reset</button>
+  <button type="button" id="bHide" class="del"><i>🚫</i>Sembunyikan</button>
 </nav>
 
-<button type="button" class="fab" id="fabAdd">＋</button>
 <div class="sheet" id="sheet"></div>
 <input type="file" id="file" accept="image/*" hidden>
 
