@@ -101,13 +101,70 @@ function extractLink(item) {
   return match ? match[0] : "";
 }
 
+function parseYouTubeId(rawUrl) {
+  try {
+    const u = new URL(rawUrl);
+    const host = u.hostname.replace(/^www\./, "").toLowerCase();
+    if (host === "youtu.be") {
+      return u.pathname.split("/").filter(Boolean)[0] || "";
+    }
+    if (host.endsWith("youtube.com")) {
+      if (u.pathname.startsWith("/shorts/")) {
+        return u.pathname.split("/shorts/")[1]?.split("/")[0] || "";
+      }
+      if (u.pathname.startsWith("/embed/")) {
+        return u.pathname.split("/embed/")[1]?.split("/")[0] || "";
+      }
+      if (u.searchParams.get("v")) {
+        return u.searchParams.get("v") || "";
+      }
+    }
+  } catch {}
+  return "";
+}
+
+function getDomainLabel(rawUrl) {
+  try {
+    return new URL(rawUrl).hostname.replace(/^www\./, "");
+  } catch {
+    return rawUrl;
+  }
+}
+
 function renderLinkBlock(item) {
   const url = extractLink(item);
   if (!url) return "";
+
   const safeHref = /^https?:\/\//i.test(url) ? url : `https://${url}`;
-  return `<div style="margin-top:8px;">
-    <a href="${esc(safeHref)}" target="_blank" rel="noopener noreferrer" style="color:var(--green);text-decoration:underline;word-break:break-all;font-size:13px;">${esc(url)}</a>
-  </div>`;
+  const domain = getDomainLabel(safeHref);
+  const ytId = parseYouTubeId(safeHref);
+  const ytThumb = ytId ? `https://img.youtube.com/vi/${esc(ytId)}/hqdefault.jpg` : "";
+
+  const thumbHtml = ytThumb
+    ? `<div style="position:relative;aspect-ratio:16/9;width:100%;background:#090b10;overflow:hidden;border-bottom:1px solid var(--line);">
+        <img src="${ytThumb}" alt="${esc(domain)}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.style.display='none'">
+        <span style="position:absolute;right:10px;bottom:10px;background:rgba(9,11,16,.82);color:#fff;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;">▶ Video</span>
+      </div>`
+    : "";
+
+  return `
+    <a href="${esc(safeHref)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()"
+       style="display:block;margin-top:10px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel2);text-decoration:none;color:var(--text);">
+      ${thumbHtml}
+      <div style="padding:10px 12px;display:grid;gap:4px;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);line-height:1.35;word-break:break-word;">
+          ${esc(item.title || domain)}
+        </div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+          ${esc(safeHref)}
+        </div>
+        <div style="margin-top:2px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--green);font-weight:600;">
+          <span>🔗 ${esc(domain)}</span>
+          <span>Buka ↗</span>
+        </div>
+      </div>
+    </a>
+  `;
 }
 
 function collectMediaEntries(item) {
