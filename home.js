@@ -141,7 +141,7 @@ function renderLinkBlock(item) {
   const ytThumb = ytId ? `https://img.youtube.com/vi/${esc(ytId)}/hqdefault.jpg` : "";
 
   const thumbHtml = ytThumb
-    ? `<div style="position:relative;aspect-ratio:16/9;width:100%;background:#090b10;overflow:hidden;border-bottom:1px solid var(--line);">
+    ? `<div style="position:relative;aspect-ratio:16/9;width:100%;min-width:0;background:#090b10;overflow:hidden;border-bottom:1px solid var(--line);">
         <img src="${ytThumb}" alt="${esc(domain)}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.style.display='none'">
         <span style="position:absolute;right:10px;bottom:10px;background:rgba(9,11,16,.82);color:#fff;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;">▶ Video</span>
       </div>`
@@ -149,18 +149,18 @@ function renderLinkBlock(item) {
 
   return `
     <a href="${esc(safeHref)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()"
-       style="display:block;margin-top:10px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel2);text-decoration:none;color:var(--text);">
+       style="display:block;width:100%;min-width:0;max-width:100%;margin-top:10px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel2);text-decoration:none;color:var(--text);">
       ${thumbHtml}
-      <div style="padding:10px 12px;display:grid;gap:4px;">
-        <div style="font-size:13px;font-weight:700;color:var(--text);line-height:1.35;word-break:break-word;">
+      <div style="padding:10px 12px;display:grid;grid-template-columns:minmax(0,1fr);gap:4px;min-width:0;">
+        <div style="min-width:0;font-size:13px;font-weight:700;color:var(--text);line-height:1.35;overflow-wrap:anywhere;">
           ${esc(item.title || domain)}
         </div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+        <div style="min-width:0;font-size:12px;color:var(--muted);line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
           ${esc(safeHref)}
         </div>
-        <div style="margin-top:2px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--green);font-weight:600;">
-          <span>🔗 ${esc(domain)}</span>
-          <span>Buka ↗</span>
+        <div style="min-width:0;margin-top:2px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:var(--green);font-weight:600;">
+          <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">🔗 ${esc(domain)}</span>
+          <span style="flex-shrink:0;">Buka ↗</span>
         </div>
       </div>
     </a>
