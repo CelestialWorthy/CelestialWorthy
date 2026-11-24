@@ -145,22 +145,6 @@
   <div class="toast" id="toast"></div>
 
   <script src="konten-render.js"></script>
-  <script>
-  window.addEventListener("error", function (e) {
-    var box = document.createElement("pre");
-    box.style.cssText = "position:fixed;left:8px;right:8px;bottom:70px;z-index:99999;background:#2b090d;color:#ffb4bc;border:1px solid #ff4d6d;padding:10px;border-radius:8px;font-size:11px;white-space:pre-wrap;max-height:40vh;overflow:auto;";
-    box.textContent = "JS ERROR: " + e.message + "\nFile: " + e.filename + "\nBaris: " + e.lineno + ":" + e.colno;
-    document.body.appendChild(box);
-  });
-
-  window.addEventListener("unhandledrejection", function (e) {
-    var box = document.createElement("pre");
-    box.style.cssText = "position:fixed;left:8px;right:8px;bottom:70px;z-index:99999;background:#2b090d;color:#ffb4bc;border:1px solid #ff4d6d;padding:10px;border-radius:8px;font-size:11px;white-space:pre-wrap;max-height:40vh;overflow:auto;";
-    box.textContent = "PROMISE ERROR: " + (e.reason && e.reason.message ? e.reason.message : String(e.reason));
-    document.body.appendChild(box);
-  });
-</script>
-
   <script src="tampilan.js"></script>
   <script type="module" src="home.js"></script>
 </body>
