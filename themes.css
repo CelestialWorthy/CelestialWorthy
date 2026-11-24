@@ -70,3 +70,21 @@ html[data-theme="sefirah"] .secondary-btn {
   border-color: rgba(255, 59, 107, 0.4);
   color: #f8f2fa;
 }
+
+/* Cegah layout geser/melebar ke samping */
+html,
+body,
+.page,
+.content-section {
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.post-card,
+.post-card > div,
+.post-card a {
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
