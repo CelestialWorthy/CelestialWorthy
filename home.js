@@ -488,12 +488,20 @@ function initAllButtons() {
       loginModal?.classList.add("open");
     }
   });
-
-  $("#closeHomeLoginModal")?.addEventListener("click", () => {
-    loginModal?.classList.remove("open");
+  $("#homeLoginForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = $("#homeLoginEmail")?.value.trim() || "";
+    const pass = $("#homeLoginPassword")?.value || "";
+    try {
+      await loginAdmin(email, pass);
+      loginModal?.classList.remove("open");
+      $("#homeLoginForm")?.reset();
+      showToast("Login Admin aktif!");
+    } catch (err) {
+      showToast("Login gagal: " + err.message);
+    }
   });
 
-  $("#homeLoginForm")?.addEventListener("submit", async (e) => {
 function initAllButtons() {
   initThemeToggle();
 
