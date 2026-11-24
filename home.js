@@ -538,26 +538,9 @@ function applySiteTheme(themeName) {
   const btn = $("#themeToggleBtn");
   if (btn) {
     btn.classList.toggle("theme-on", active === "sefirah");
-    btn.title = active === "sefirah" ? "Tema: Sefirah (Klik untuk Default)" : "Tema: Default (Klik untuk Sefirah)";
-  }
-}
-
-const THEME_STORAGE_KEY = "alcrazhy_site_theme";
-
-function applySiteTheme(themeName) {
-  const active = themeName === "sefirah" ? "sefirah" : "default";
-  if (active === "sefirah") {
-    document.documentElement.setAttribute("data-theme", "sefirah");
-  } else {
-    document.documentElement.removeAttribute("data-theme");
-  }
-  try {
-    localStorage.setItem(THEME_STORAGE_KEY, active);
-  } catch {}
-
-  const btn = $("#themeToggleBtn");
-  if (btn) {
-    btn.classList.toggle("theme-on", active === "sefirah");
+    btn.title = active === "sefirah"
+      ? "Tema: Sefirah (Klik untuk Default)"
+      : "Tema: Default (Klik untuk Sefirah)";
   }
 }
 
