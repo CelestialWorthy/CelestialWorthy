@@ -543,13 +543,21 @@ function applySiteTheme(themeName) {
 }
 
 function initThemeToggle() {
+  const btn = $("#themeToggleBtn");
   let saved = "default";
   try {
     saved = localStorage.getItem(THEME_STORAGE_KEY) || "default";
   } catch {}
   applySiteTheme(saved);
 
-  $("#themeToggleBtn")?.addEventListener("click", () => {
+  if (!btn) {
+    console.warn("Tombol #themeToggleBtn tidak ditemukan");
+    return;
+  }
+
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     const current = document.documentElement.getAttribute("data-theme");
     const next = current === "sefirah" ? "default" : "sefirah";
     applySiteTheme(next);
