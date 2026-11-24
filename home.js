@@ -494,6 +494,70 @@ function initAllButtons() {
   });
 
   $("#homeLoginForm")?.addEventListener("submit", async (e) => {
+function initAllButtons() {
+  initThemeToggle();
+
+  document.querySelectorAll(".tab").forEach((tab) => {
+    tab.addEventListener("click", (e) => {
+      e.preventDefault();
+      activateSection(tab.dataset.tab);
+    });
+  });
+
+  document.querySelectorAll(".bottom-item").forEach((link) => {
+    link.addEventListener("click", (e) => {
+      const href = link.getAttribute("href") || "";
+      if (!href.startsWith("#")) return;
+      e.preventDefault();
+      activateSection(href.slice(1));
+    });
+  });
+
+  $("#viewKontenBtn")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    activateSection("konten");
+  });
+
+  $("#closeDetailBtn")?.addEventListener("click", () => {
+    const modal = $("#contentDetailModal");
+    if (modal) modal.style.display = "none";
+  });
+
+  $("#contentSearch")?.addEventListener("input", (e) => {
+    renderKontenList(e.target.value);
+  });
+
+  $("#shareButton")?.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(location.href);
+      showToast("Tautan disalin!");
+    } catch {
+      showToast("Salin tautan dari alamat browser.");
+    }
+  });
+
+  $("#searchToggle")?.addEventListener("click", () => {
+    activateSection("konten");
+    $("#contentSearch")?.focus();
+  });
+
+  const loginModal = $("#homeLoginModal");
+  $("#adminAuthBtn")?.addEventListener("click", async () => {
+    if (isAdmin) {
+      if (confirm("Keluar dari sesi Admin?")) {
+        await logoutAdmin();
+        showToast("Logout berhasil.");
+      }
+    } else {
+      loginModal?.classList.add("open");
+    }
+  });
+
+  $("#closeHomeLoginModal")?.addEventListener("click", () => {
+    loginModal?.classList.remove("open");
+  });
+
+  $("#homeLoginForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const email = $("#homeLoginEmail")?.value.trim() || "";
     const pass = $("#homeLoginPassword")?.value || "";
