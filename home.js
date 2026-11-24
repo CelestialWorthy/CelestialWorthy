@@ -542,22 +542,36 @@ function applySiteTheme(themeName) {
   }
 }
 
-function initThemeToggle() {
+const THEME_STORAGE_KEY = "alcrazhy_site_theme";
+
+function applySiteTheme(themeName) {
+  const active = themeName === "sefirah" ? "sefirah" : "default";
+  if (active === "sefirah") {
+    document.documentElement.setAttribute("data-theme", "sefirah");
+  } else {
+    document.documentElement.removeAttribute("data-theme");
+  }
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, active);
+  } catch {}
+
   const btn = $("#themeToggleBtn");
+  if (btn) {
+    btn.classList.toggle("theme-on", active === "sefirah");
+  }
+}
+
+function initThemeToggle() {
   let saved = "default";
   try {
     saved = localStorage.getItem(THEME_STORAGE_KEY) || "default";
   } catch {}
   applySiteTheme(saved);
 
-  if (!btn) {
-    console.warn("Tombol #themeToggleBtn tidak ditemukan");
-    return;
-  }
+  const btn = $("#themeToggleBtn");
+  if (!btn) return;
 
-  btn.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  btn.addEventListener("click", () => {
     const current = document.documentElement.getAttribute("data-theme");
     const next = current === "sefirah" ? "default" : "sefirah";
     applySiteTheme(next);
