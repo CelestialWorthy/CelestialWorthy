@@ -163,15 +163,5 @@
 
   <script src="tampilan.js"></script>
   <script type="module" src="home.js"></script>
-  <script>
-  document.addEventListener("click", (e) => {
-    const tBtn = e.target.closest("#themeToggleBtn");
-    if (tBtn) {
-      const next = document.documentElement.getAttribute("data-theme") === "sefirah" ? "default" : "sefirah";
-      if (next === "sefirah") document.documentElement.setAttribute("data-theme", "sefirah");
-      else document.documentElement.removeAttribute("data-theme");
-    }
-  });
-</script>
 </body>
 </html>
