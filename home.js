@@ -430,6 +430,9 @@ function activateSection(tabName) {
 }
 
 function initAllButtons() {
+  initThemeToggle();
+  
+function initAllButtons() {
   document.querySelectorAll(".tab").forEach((tab) => {
     tab.addEventListener("click", (e) => {
       e.preventDefault();
