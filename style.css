@@ -1114,3 +1114,38 @@ body {
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 10px;
 }
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.page,
+.content-section,
+.post-card,
+.about-card,
+.member-list,
+.member-row {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.post-card > *,
+.post-card a,
+.post-card div,
+.post-card p {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.tabs {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
