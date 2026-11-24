@@ -1,4 +1,5 @@
 // home.js
+alert("home.js jalan!");
 import {
   watchAdminAuth,
   loginAdmin,
