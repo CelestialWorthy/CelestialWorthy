@@ -213,3 +213,90 @@ html[data-theme="sefirah"] nav.bottom-bar {
 html[data-theme="sefirah"] .bottom-item.active {
   color: var(--sefirah-red);
 }
+
+/* =========================================================
+   SEFIRAH LAYOUT TRANSFORM — TATA LETAK VERTIKAL TERPUSAT
+   Aktif hanya saat html[data-theme="sefirah"]
+   ========================================================= */
+
+html[data-theme="sefirah"] .profile-card,
+html[data-theme="sefirah"] .hero-card,
+html[data-theme="sefirah"] .community-card,
+html[data-theme="sefirah"] .profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px 20px 22px;
+  gap: 14px;
+  position: relative;
+}
+
+/* Banner / cover dibuat ringkas di atas sebagai latar editorial */
+html[data-theme="sefirah"] #coverImage,
+html[data-theme="sefirah"] .cover-banner,
+html[data-theme="sefirah"] .profile-cover {
+  width: 100%;
+  min-height: 120px;
+  max-height: 150px;
+  border-radius: 12px;
+  opacity: 0.72;
+}
+
+/* Baris avatar + identitas diposisikan terpusat vertikal ala Sefirah */
+html[data-theme="sefirah"] .profile-main,
+html[data-theme="sefirah"] .profile-row,
+html[data-theme="sefirah"] .identity-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: -42px;
+  width: 100%;
+}
+
+html[data-theme="sefirah"] #avatarImage,
+html[data-theme="sefirah"] .avatar,
+html[data-theme="sefirah"] .profile-avatar {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+html[data-theme="sefirah"] #communityName,
+html[data-theme="sefirah"] .community-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 0;
+}
+
+html[data-theme="sefirah"] #communityHandle,
+html[data-theme="sefirah"] .community-handle {
+  display: block;
+  margin-top: 2px;
+}
+
+/* Bio ditata di tengah dengan aksen garis kiri */
+html[data-theme="sefirah"] #communityBio,
+html[data-theme="sefirah"] .bio-text {
+  width: 100%;
+  max-width: 520px;
+  text-align: left;
+  margin: 2px auto 0;
+}
+
+/* Tombol aksi disusun simetris di tengah */
+html[data-theme="sefirah"] .profile-actions,
+html[data-theme="sefirah"] .action-row,
+html[data-theme="sefirah"] .hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 4px;
+}
