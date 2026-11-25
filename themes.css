@@ -1,302 +1,254 @@
 /* =========================================================
-   SEFIRAH THEME — GAYA & TATA LETAK ADAPTIF (TANPA FITUR TAMBAHAN)
-   Mengadaptasi nuansa Sefirah Castle ke struktur halaman utama
+   SEFIRAH THEME — WARNA & TATA LETAK ADAPTIF HALAMAN UTAMA
    ========================================================= */
 
-:root {
-  --sefirah-bg: #07060b;
-  --sefirah-surface: rgba(16, 12, 26, 0.86);
-  --sefirah-card: rgba(22, 16, 36, 0.78);
-  --sefirah-card-hover: rgba(34, 22, 52, 0.92);
-  --sefirah-red: #ff1e56;
-  --sefirah-red-soft: rgba(255, 30, 86, 0.18);
-  --sefirah-purple: #a855f7;
-  --sefirah-purple-bright: #c084fc;
-  --sefirah-purple-soft: rgba(168, 85, 247, 0.18);
-  --sefirah-text: #f4f1fa;
-  --sefirah-muted: #9b8fb5;
-  --sefirah-border: rgba(168, 85, 247, 0.28);
-  --sefirah-border-red: rgba(255, 30, 86, 0.45);
+html[data-theme="sefirah"] {
+  --bg: #07060b;
+  --panel: rgba(16, 12, 26, 0.88);
+  --panel2: rgba(22, 16, 36, 0.82);
+  --text: #f4f1fa;
+  --muted: #9b8fb5;
+  --line: rgba(168, 85, 247, 0.3);
+  --accent: #ff1e56;
+  --green: #c084fc;
 }
 
-/* Latar belakang void + grid Sefirah */
-html[data-theme="sefirah"] body {
-  background-color: var(--sefirah-bg);
-  color: var(--sefirah-text);
+html[data-theme="sefirah"] body#mainBody {
+  background-color: #07060b;
+  color: #f4f1fa;
   background-image:
-    radial-gradient(circle at 12% 8%, rgba(255, 30, 86, 0.18), transparent 42%),
-    radial-gradient(circle at 88% 82%, rgba(168, 85, 247, 0.2), transparent 45%),
+    radial-gradient(circle at 12% 6%, rgba(255, 30, 86, 0.22), transparent 40%),
+    radial-gradient(circle at 88% 85%, rgba(168, 85, 247, 0.22), transparent 44%),
     linear-gradient(to right, rgba(168, 85, 247, 0.055) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 30, 86, 0.045) 1px, transparent 1px);
   background-size: auto, auto, 36px 36px, 36px 36px;
 }
 
-/* Topbar / header bergaya panel Sefirah */
-html[data-theme="sefirah"] header,
-html[data-theme="sefirah"] .topbar,
-html[data-theme="sefirah"] .top-bar {
-  background: rgba(10, 8, 18, 0.86);
-  border-bottom: 1px solid var(--sefirah-border);
+/* Topbar */
+html[data-theme="sefirah"] .topbar {
+  background: rgba(10, 8, 18, 0.88);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.28);
   backdrop-filter: blur(14px);
 }
 
-/* Kartu profil / hero bergaya bingkai Sefirah */
-html[data-theme="sefirah"] .profile-card,
-html[data-theme="sefirah"] .hero-card,
-html[data-theme="sefirah"] .community-card {
-  background: var(--sefirah-surface);
-  border: 1px solid var(--sefirah-border);
+html[data-theme="sefirah"] .brand-mark span {
+  color: #ff1e56;
+}
+
+html[data-theme="sefirah"] .icon-btn {
+  background: rgba(24, 17, 40, 0.85);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  color: #f4f1fa;
+}
+
+html[data-theme="sefirah"] .icon-btn:hover {
+  border-color: #ff1e56;
+  box-shadow: 0 0 14px rgba(255, 30, 86, 0.35);
+}
+
+/* Bingkai utama & kartu profil terpusat ala Sefirah */
+html[data-theme="sefirah"] main.page {
+  max-width: 680px;
+  margin: 14px auto 96px;
+  padding: 0 12px;
+}
+
+html[data-theme="sefirah"] .profile-card {
+  background: rgba(16, 12, 26, 0.88);
+  border: 1px solid rgba(168, 85, 247, 0.32);
   border-radius: 16px;
+  padding: 14px 16px 22px;
   box-shadow:
-    0 12px 34px rgba(0, 0, 0, 0.72),
-    inset 0 0 22px rgba(168, 85, 247, 0.08);
+    0 14px 36px rgba(0, 0, 0, 0.75),
+    inset 0 0 24px rgba(168, 85, 247, 0.08);
   backdrop-filter: blur(16px);
 }
 
-/* Avatar dengan bingkai merah-ungu & aksen cincin halus */
-html[data-theme="sefirah"] #avatarImage,
-html[data-theme="sefirah"] .avatar,
-html[data-theme="sefirah"] .profile-avatar {
-  border: 2.5px solid var(--sefirah-red);
-  box-shadow:
-    0 0 18px rgba(255, 30, 86, 0.45),
-    0 0 32px rgba(168, 85, 247, 0.28);
-  outline: 2px dashed rgba(168, 85, 247, 0.45);
-  outline-offset: 4px;
+html[data-theme="sefirah"] .cover {
+  width: 100%;
+  height: 138px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(168, 85, 247, 0.25);
 }
 
-/* Judul komunitas bergradasi crimson -> purple */
-html[data-theme="sefirah"] #communityName,
-html[data-theme="sefirah"] .community-title {
-  background: linear-gradient(90deg, var(--sefirah-red) 0%, #ff5c85 45%, var(--sefirah-purple-bright) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: 0.4px;
-}
-
-html[data-theme="sefirah"] #communityHandle,
-html[data-theme="sefirah"] .community-handle {
-  color: var(--sefirah-purple-bright);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8rem;
-}
-
-/* Bio dengan garis aksen kiri crimson */
-html[data-theme="sefirah"] #communityBio,
-html[data-theme="sefirah"] .bio-text {
-  background: rgba(12, 9, 20, 0.7);
-  border-left: 3px solid var(--sefirah-red);
-  border-radius: 0 8px 8px 0;
-  padding: 10px 14px;
-}
-
-/* Tombol aksi utama & sekunder */
-html[data-theme="sefirah"] #viewKontenBtn,
-html[data-theme="sefirah"] .btn-primary,
-html[data-theme="sefirah"] .primary-btn {
-  background: linear-gradient(135deg, var(--sefirah-red), #9333ea);
-  color: #fff;
-  border: none;
-  border-radius: 9px;
-  box-shadow: 0 0 16px rgba(255, 30, 86, 0.38);
-}
-
-html[data-theme="sefirah"] #viewKontenBtn:hover,
-html[data-theme="sefirah"] .btn-primary:hover,
-html[data-theme="sefirah"] .primary-btn:hover {
-  box-shadow: 0 0 24px rgba(255, 30, 86, 0.6), 0 0 14px rgba(168, 85, 247, 0.45);
-}
-
-html[data-theme="sefirah"] #shareButton,
-html[data-theme="sefirah"] .btn-secondary,
-html[data-theme="sefirah"] .secondary-btn {
-  background: rgba(168, 85, 247, 0.12);
-  border: 1px solid var(--sefirah-border);
-  color: var(--sefirah-purple-bright);
-  border-radius: 9px;
-}
-
-/* Bar tab navigasi dengan indikator gradien bawah */
-html[data-theme="sefirah"] .tabs,
-html[data-theme="sefirah"] .tab-bar {
-  background: rgba(11, 8, 19, 0.88);
-  border-top: 1px solid var(--sefirah-border);
-  border-bottom: 1px solid var(--sefirah-border);
-}
-
-html[data-theme="sefirah"] .tab {
-  color: var(--sefirah-muted);
-  position: relative;
-}
-
-html[data-theme="sefirah"] .tab.active {
-  color: #fff;
-}
-
-html[data-theme="sefirah"] .tab.active::after {
-  content: "";
-  position: absolute;
-  left: 16%;
-  right: 16%;
-  bottom: 0;
-  height: 3px;
-  border-radius: 3px 3px 0 0;
-  background: linear-gradient(90deg, var(--sefirah-red), var(--sefirah-purple));
-  box-shadow: 0 0 10px var(--sefirah-red);
-}
-
-/* Kartu postingan / konten / media */
-html[data-theme="sefirah"] .post-card,
-html[data-theme="sefirah"] .content-card,
-html[data-theme="sefirah"] .about-card {
-  background: var(--sefirah-card);
-  border: 1px solid var(--sefirah-border);
-  border-radius: 14px;
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
-  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-}
-
-html[data-theme="sefirah"] .post-card:hover,
-html[data-theme="sefirah"] .content-card:hover {
-  background: var(--sefirah-card-hover);
-  border-color: var(--sefirah-border-red);
-  transform: translateY(-1px);
-}
-
-html[data-theme="sefirah"] .mini-avatar {
-  background: linear-gradient(135deg, rgba(255, 30, 86, 0.28), rgba(168, 85, 247, 0.32));
-  border: 1px solid var(--sefirah-border);
-  color: #fff;
-}
-
-html[data-theme="sefirah"] .media-tile {
-  border: 1px solid var(--sefirah-border) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
-}
-
-/* Input pencarian, modal, toast & bottom nav */
-html[data-theme="sefirah"] input,
-html[data-theme="sefirah"] textarea,
-html[data-theme="sefirah"] select {
-  background: rgba(9, 7, 17, 0.9);
-  border-color: var(--sefirah-border);
-  color: var(--sefirah-text);
-  border-radius: 8px;
-}
-
-html[data-theme="sefirah"] .home-modal-card,
-html[data-theme="sefirah"] .modal-content {
-  background: #110c1e;
-  border: 1px solid var(--sefirah-purple);
-  border-radius: 14px;
-  box-shadow: 0 0 32px rgba(255, 30, 86, 0.25);
-}
-
-html[data-theme="sefirah"] .toast,
-html[data-theme="sefirah"] #toast {
-  background: #140d24;
-  border: 1px solid var(--sefirah-red);
-  color: #fff;
-  font-family: 'JetBrains Mono', monospace;
-  box-shadow: 0 0 18px rgba(255, 30, 86, 0.42);
-}
-
-html[data-theme="sefirah"] .bottom-nav,
-html[data-theme="sefirah"] nav.bottom-bar {
-  background: rgba(10, 8, 18, 0.92);
-  border-top: 1px solid var(--sefirah-border);
-  backdrop-filter: blur(14px);
-}
-
-html[data-theme="sefirah"] .bottom-item.active {
-  color: var(--sefirah-red);
-}
-
-/* =========================================================
-   SEFIRAH LAYOUT TRANSFORM — TATA LETAK VERTIKAL TERPUSAT
-   Aktif hanya saat html[data-theme="sefirah"]
-   ========================================================= */
-
-html[data-theme="sefirah"] .profile-card,
-html[data-theme="sefirah"] .hero-card,
-html[data-theme="sefirah"] .community-card,
-html[data-theme="sefirah"] .profile-header {
+html[data-theme="sefirah"] .profile-main {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 24px 20px 22px;
-  gap: 14px;
+  gap: 12px;
+  margin-top: -46px;
+  padding: 0 6px;
+}
+
+html[data-theme="sefirah"] .avatar-wrap {
   position: relative;
+  width: 108px;
+  height: 108px;
+  flex-shrink: 0;
+  padding: 4px;
+  border-radius: 50%;
+  background: rgba(12, 8, 22, 0.9);
+  border: 2px solid #ff1e56;
+  box-shadow:
+    0 0 22px rgba(255, 30, 86, 0.5),
+    0 0 36px rgba(168, 85, 247, 0.32);
 }
 
-/* Banner / cover dibuat ringkas di atas sebagai latar editorial */
-html[data-theme="sefirah"] #coverImage,
-html[data-theme="sefirah"] .cover-banner,
-html[data-theme="sefirah"] .profile-cover {
+html[data-theme="sefirah"] #avatarImage.avatar {
   width: 100%;
-  min-height: 120px;
-  max-height: 150px;
-  border-radius: 12px;
-  opacity: 0.72;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
 }
 
-/* Baris avatar + identitas diposisikan terpusat vertikal ala Sefirah */
-html[data-theme="sefirah"] .profile-main,
-html[data-theme="sefirah"] .profile-row,
-html[data-theme="sefirah"] .identity-row {
+html[data-theme="sefirah"] .online-dot {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ff1e56;
+  border: 2px solid #120c20;
+  box-shadow: 0 0 10px #ff1e56;
+}
+
+html[data-theme="sefirah"] .profile-heading {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 2px;
+}
+
+html[data-theme="sefirah"] .name-line {
   justify-content: center;
-  gap: 10px;
-  margin-top: -42px;
-  width: 100%;
 }
 
-html[data-theme="sefirah"] #avatarImage,
-html[data-theme="sefirah"] .avatar,
-html[data-theme="sefirah"] .profile-avatar {
-  width: 112px;
-  height: 112px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
-}
-
-html[data-theme="sefirah"] #communityName,
-html[data-theme="sefirah"] .community-title {
+html[data-theme="sefirah"] #communityName {
   font-size: 1.5rem;
   font-weight: 800;
-  line-height: 1.2;
-  margin: 0;
+  background: linear-gradient(90deg, #ff1e56 0%, #ff5c85 45%, #c084fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-html[data-theme="sefirah"] #communityHandle,
-html[data-theme="sefirah"] .community-handle {
-  display: block;
-  margin-top: 2px;
+html[data-theme="sefirah"] .handle,
+html[data-theme="sefirah"] #communityHandle {
+  color: #c084fc;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8rem;
+  text-align: center;
 }
 
-/* Bio ditata di tengah dengan aksen garis kiri */
-html[data-theme="sefirah"] #communityBio,
-html[data-theme="sefirah"] .bio-text {
-  width: 100%;
+html[data-theme="sefirah"] #communityBio.bio {
   max-width: 520px;
+  width: 100%;
   text-align: left;
-  margin: 2px auto 0;
+  background: rgba(11, 8, 19, 0.76);
+  border-left: 3px solid #ff1e56;
+  border-radius: 0 8px 8px 0;
+  padding: 10px 14px;
+  color: #e4dcf5;
 }
 
-/* Tombol aksi disusun simetris di tengah */
-html[data-theme="sefirah"] .profile-actions,
-html[data-theme="sefirah"] .action-row,
-html[data-theme="sefirah"] .hero-actions {
+html[data-theme="sefirah"] .profile-buttons {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
   width: 100%;
   margin-top: 4px;
+}
+
+html[data-theme="sefirah"] .primary-btn,
+html[data-theme="sefirah"] #viewKontenBtn {
+  background: linear-gradient(135deg, #ff1e56, #9333ea);
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  box-shadow: 0 0 18px rgba(255, 30, 86, 0.42);
+}
+
+html[data-theme="sefirah"] .secondary-btn,
+html[data-theme="sefirah"] #shareButton {
+  background: rgba(168, 85, 247, 0.14);
+  border: 1px solid rgba(168, 85, 247, 0.42);
+  color: #e9d5ff;
+  border-radius: 9px;
+}
+
+/* Tabs */
+html[data-theme="sefirah"] .tabs {
+  margin-top: 14px;
+  background: rgba(11, 8, 19, 0.9);
+  border: 1px solid rgba(168, 85, 247, 0.28);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+html[data-theme="sefirah"] .tab {
+  color: #9b8fb5;
+  position: relative;
+}
+
+html[data-theme="sefirah"] .tab.active {
+  color: #fff;
+  background: rgba(168, 85, 247, 0.1);
+}
+
+html[data-theme="sefirah"] .tab.active::after {
+  content: "";
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 0;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(90deg, #ff1e56, #a855f7);
+  box-shadow: 0 0 10px #ff1e56;
+}
+
+/* Postingan, konten, media & tentang */
+html[data-theme="sefirah"] .content-section {
+  margin-top: 14px;
+}
+
+html[data-theme="sefirah"] .post-card,
+html[data-theme="sefirah"] .about-card {
+  background: rgba(22, 16, 36, 0.82);
+  border: 1px solid rgba(168, 85, 247, 0.28);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+html[data-theme="sefirah"] .mini-avatar {
+  background: linear-gradient(135deg, rgba(255, 30, 86, 0.28), rgba(168, 85, 247, 0.34));
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  color: #fff;
+}
+
+html[data-theme="sefirah"] .search-box,
+html[data-theme="sefirah"] .home-modal-card {
+  background: rgba(14, 10, 24, 0.92);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+}
+
+/* Bottom nav */
+html[data-theme="sefirah"] .bottom-nav {
+  background: rgba(10, 8, 18, 0.94);
+  border-top: 1px solid rgba(168, 85, 247, 0.3);
+  backdrop-filter: blur(14px);
+}
+
+html[data-theme="sefirah"] .bottom-item.active {
+  color: #ff1e56;
+}
+
+html[data-theme="sefirah"] .create-button {
+  border: 2px solid #ff1e56;
+  box-shadow: 0 0 16px rgba(255, 30, 86, 0.45);
 }
