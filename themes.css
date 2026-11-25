@@ -439,3 +439,254 @@ html[data-theme="sefirah"] .create-button {
     border-inline: none;
   }
 }
+
+/* =========================================================
+   FORCE OVERRIDE TATA LETAK, FONT, JUDUL & ANIMASI SEFIRAH
+   ========================================================= */
+
+html[data-theme="sefirah"] body#mainBody,
+html[data-theme="sefirah"] body {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  background-color: #07060b !important;
+  color: #f4f1fa !important;
+  background-image:
+    radial-gradient(circle at 8% 4%, rgba(255, 30, 86, 0.24), transparent 360px),
+    radial-gradient(circle at 92% 88%, rgba(168, 85, 247, 0.26), transparent 420px),
+    linear-gradient(to right, rgba(168, 85, 247, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 30, 86, 0.05) 1px, transparent 1px) !important;
+  background-size: auto, auto, 36px 36px, 36px 36px !important;
+}
+
+/* Bingkai utama menyatu */
+html[data-theme="sefirah"] .topbar {
+  max-width: 680px !important;
+  margin: 14px auto 0 !important;
+  border-radius: 16px 16px 0 0 !important;
+  background: rgba(10, 8, 18, 0.88) !important;
+  border: 1px solid rgba(168, 85, 247, 0.28) !important;
+  backdrop-filter: blur(16px) !important;
+}
+
+html[data-theme="sefirah"] main.page {
+  max-width: 680px !important;
+  margin: 0 auto 96px !important;
+  padding: 0 !important;
+  background: rgba(16, 12, 26, 0.84) !important;
+  border: 1px solid rgba(168, 85, 247, 0.28) !important;
+  border-top: none !important;
+  border-radius: 0 0 16px 16px !important;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.85), inset 0 0 24px rgba(168, 85, 247, 0.08) !important;
+  overflow: hidden !important;
+}
+
+/* Hero Profil: cover jadi latar redup, konten tersusun vertikal di tengah */
+html[data-theme="sefirah"] .profile-card {
+  position: relative !important;
+  display: block !important;
+  padding: 26px 20px 22px !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+
+html[data-theme="sefirah"] .profile-card > .cover,
+html[data-theme="sefirah"] .cover {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  border: none !important;
+  opacity: 0.18 !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 25%, rgba(0, 0, 0, 0) 100%) !important;
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 25%, rgba(0, 0, 0, 0) 100%) !important;
+}
+
+html[data-theme="sefirah"] .profile-main {
+  position: relative !important;
+  z-index: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  gap: 14px !important;
+  margin-top: 4px !important;
+  width: 100% !important;
+}
+
+/* Cincin animasi di sekitar avatar bulat */
+html[data-theme="sefirah"] .avatar-wrap {
+  position: relative !important;
+  width: 152px !important;
+  height: 152px !important;
+  margin: 10px auto 6px !important;
+  border-radius: 50% !important;
+  border: 3px solid #ff1e56 !important;
+  box-shadow: 0 0 25px rgba(255, 30, 86, 0.55), 0 0 45px rgba(168, 85, 247, 0.35) !important;
+  overflow: visible !important;
+  background: rgba(12, 8, 22, 0.9) !important;
+}
+
+html[data-theme="sefirah"] .avatar-wrap::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: -13px !important;
+  border-radius: 50% !important;
+  border: 1.5px dashed rgba(168, 85, 247, 0.65) !important;
+  animation: sefirahRingCW 22s linear infinite !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+html[data-theme="sefirah"] .avatar-wrap::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: -6px !important;
+  border-radius: 50% !important;
+  border: 2px solid transparent !important;
+  border-top-color: #ff1e56 !important;
+  border-bottom-color: #c084fc !important;
+  animation: sefirahRingCCW 10s linear infinite !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+@keyframes sefirahRingCW {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes sefirahRingCCW {
+  to { transform: rotate(-360deg); }
+}
+
+html[data-theme="sefirah"] #avatarImage,
+html[data-theme="sefirah"] .avatar {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  display: block !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+html[data-theme="sefirah"] .online-dot {
+  position: absolute !important;
+  right: 4px !important;
+  bottom: 4px !important;
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 50% !important;
+  background: #ff1e56 !important;
+  border: 2px solid #120d1d !important;
+  box-shadow: 0 0 10px #ff1e56 !important;
+  z-index: 3 !important;
+}
+
+/* Judul besar editorial ala Sefirah Castle + handle miring */
+html[data-theme="sefirah"] .profile-heading {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  gap: 2px !important;
+}
+
+html[data-theme="sefirah"] .profile-heading::before {
+  content: "SEFIRAH SANCTUM" !important;
+  display: inline-block !important;
+  background: #ff1e56 !important;
+  color: #fff !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 0.66rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.4px !important;
+  padding: 3px 9px !important;
+  border-radius: 4px !important;
+  margin-bottom: 6px !important;
+  box-shadow: 0 0 12px rgba(255, 30, 86, 0.45) !important;
+}
+
+html[data-theme="sefirah"] #communityName {
+  font-family: 'Cinzel', serif !important;
+  font-weight: 800 !important;
+  font-size: clamp(1.85rem, 6.8vw, 2.85rem) !important;
+  letter-spacing: 2.5px !important;
+  line-height: 1.02 !important;
+  text-transform: uppercase !important;
+  background: linear-gradient(90deg, #ff1e56 0%, #ff4d79 45%, #c084fc 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  filter: drop-shadow(0 0 14px rgba(255, 30, 86, 0.35)) !important;
+}
+
+html[data-theme="sefirah"] #communityHandle,
+html[data-theme="sefirah"] .handle {
+  font-family: 'Playfair Display', serif !important;
+  font-style: italic !important;
+  font-size: 1.1rem !important;
+  color: #c084fc !important;
+  text-shadow: 0 0 12px rgba(168, 85, 247, 0.6) !important;
+  text-align: center !important;
+  width: 100% !important;
+}
+
+/* Bio & tombol */
+html[data-theme="sefirah"] #communityBio,
+html[data-theme="sefirah"] .bio {
+  width: 100% !important;
+  text-align: left !important;
+  background: rgba(12, 9, 20, 0.72) !important;
+  border-left: 3px solid #ff1e56 !important;
+  padding: 10px 14px !important;
+  border-radius: 0 8px 8px 0 !important;
+  color: #dcd4ec !important;
+  font-size: 0.86rem !important;
+}
+
+html[data-theme="sefirah"] .profile-buttons {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  padding-top: 12px !important;
+  border-top: 1px solid rgba(168, 85, 247, 0.16) !important;
+}
+
+/* Tab & section menyatu di dalam bingkai */
+html[data-theme="sefirah"] .tabs {
+  margin: 0 !important;
+  border-radius: 0 !important;
+  border-inline: none !important;
+  background: rgba(11, 8, 19, 0.88) !important;
+}
+
+html[data-theme="sefirah"] .content-section {
+  margin: 0 !important;
+  padding: 18px 20px 26px !important;
+}
+
+@media (max-width: 540px) {
+  html[data-theme="sefirah"] .topbar,
+  html[data-theme="sefirah"] main.page {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    border-radius: 0 !important;
+    border-inline: none !important;
+  }
+}
