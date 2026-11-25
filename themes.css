@@ -1,123 +1,144 @@
 /* =========================================================
-   SEFIRAH CASTLE FULL THEME — ADAPTASI TAMPILAN UTAMA
+   SEFIRAH CASTLE THEME FOR INDEX.HTML UTAMA
+   Disesuaikan ke struktur & class asli index.html utama
+   Tanpa penambahan fitur yang tidak ada di index.html utama
    ========================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=JetBrains+Mono:wght@400;600;700&family=Playfair+Display:ital,wght@1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=JetBrains+Mono:wght@400;600;700&family=Playfair+Display:ital,wght@0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 html[data-theme="sefirah"] {
   --bg: #07060b;
-  --panel: rgba(16, 12, 26, 0.84);
-  --panel2: rgba(22, 16, 36, 0.78);
+  --panel: rgba(16, 12, 26, 0.82);
+  --panel2: rgba(22, 16, 36, 0.72);
   --text: #f4f1fa;
   --muted: #9b8fb5;
-  --line: rgba(168, 85, 247, 0.28);
+  --line: rgba(168, 85, 247, 0.25);
   --accent: #ff1e56;
   --green: #c084fc;
 }
 
-/* Latar belakang void + grid overlay + ambient glow */
+/* Latar Void + Grid + Ambient Glow ala Sefirah Castle */
 html[data-theme="sefirah"] body#mainBody {
   background-color: #07060b;
   color: #f4f1fa;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  line-height: 1.5;
+  position: relative;
+  overflow-x: hidden;
   background-image:
-    radial-gradient(circle at 10% 5%, rgba(255, 30, 86, 0.25), transparent 38%),
-    radial-gradient(circle at 90% 85%, rgba(168, 85, 247, 0.25), transparent 42%),
+    radial-gradient(circle at 6% 4%, rgba(255, 30, 86, 0.24), transparent 360px),
+    radial-gradient(circle at 94% 88%, rgba(168, 85, 247, 0.26), transparent 420px),
     linear-gradient(to right, rgba(168, 85, 247, 0.06) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 30, 86, 0.05) 1px, transparent 1px);
   background-size: auto, auto, 36px 36px, 36px 36px;
-  min-height: 100vh;
 }
 
-/* Topbar menyatu di atas */
+/* Top Bar (.top-bar) */
 html[data-theme="sefirah"] .topbar {
   max-width: 680px;
-  margin: 14px auto 0;
+  margin: 18px auto 0;
   padding: 12px 18px;
-  background: rgba(10, 8, 18, 0.88);
-  border: 1px solid rgba(168, 85, 247, 0.28);
-  border-bottom: none;
+  background: rgba(10, 8, 18, 0.82);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.2);
   border-radius: 16px 16px 0 0;
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  font-family: 'JetBrains Mono', monospace;
 }
 
 html[data-theme="sefirah"] .brand-mark {
   font-family: 'Cinzel', serif;
+  font-weight: 800;
+  color: #f4f1fa;
   letter-spacing: 1px;
 }
 
 html[data-theme="sefirah"] .brand-mark span {
   color: #ff1e56;
+  text-shadow: 0 0 12px rgba(255, 30, 86, 0.6);
 }
 
 html[data-theme="sefirah"] .icon-btn {
   background: rgba(168, 85, 247, 0.12);
-  border: 1px solid rgba(168, 85, 247, 0.4);
+  border: 1px solid rgba(168, 85, 247, 0.45);
   color: #c084fc;
-  border-radius: 8px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  transition: all 0.2s ease;
 }
 
 html[data-theme="sefirah"] .icon-btn:hover {
-  background: rgba(255, 30, 86, 0.2);
+  background: rgba(168, 85, 247, 0.28);
   border-color: #ff1e56;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
   color: #fff;
-  box-shadow: 0 0 12px rgba(255, 30, 86, 0.4);
 }
 
-/* Satu Bingkai Utama (app-frame) untuk seluruh halaman */
+/* Bingkai Utama (.app-frame) */
 html[data-theme="sefirah"] main.page {
   max-width: 680px;
   margin: 0 auto 96px;
   padding: 0;
   background: rgba(16, 12, 26, 0.82);
-  border: 1px solid rgba(168, 85, 247, 0.28);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-top: none;
   border-radius: 0 0 16px 16px;
   box-shadow:
     0 0 40px rgba(0, 0, 0, 0.85),
     inset 0 0 24px rgba(168, 85, 247, 0.08);
-  backdrop-filter: blur(16px);
   overflow: hidden;
 }
 
-/* Bagian Profil di dalam Bingkai (Tanpa kartu terpisah) */
+/* Hero Editorial (.hero-editorial) */
 html[data-theme="sefirah"] .profile-card {
+  position: relative;
+  padding: 24px 22px 22px;
   background: transparent;
   border: none;
   border-radius: 0;
   box-shadow: none;
-  padding: 24px 20px 22px;
-  position: relative;
+  overflow: hidden;
 }
 
-/* Cover diubah menjadi latar redup editorial di belakang hero, bukan kotak atas */
 html[data-theme="sefirah"] .cover {
   position: absolute;
   inset: 0;
-  height: 100%;
   width: 100%;
+  height: 100%;
   border-radius: 0;
-  border: none;
-  opacity: 0.16;
+  opacity: 0.18;
   z-index: 0;
   pointer-events: none;
-  mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 25%, rgba(0, 0, 0, 0) 100%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 25%, rgba(0, 0, 0, 0) 100%);
+}
+
+html[data-theme="sefirah"] .cover-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(7, 6, 11, 0.35) 0%, rgba(16, 12, 26, 0.95) 100%);
 }
 
 html[data-theme="sefirah"] .cover-label {
+  position: relative;
+  z-index: 1;
   display: inline-block;
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem;
-  letter-spacing: 1.5px;
+  margin: 4px 0 0 4px;
   background: #ff1e56;
   color: #fff;
-  padding: 3px 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 0.68rem;
+  padding: 3px 9px;
   border-radius: 4px;
-  opacity: 1;
+  letter-spacing: 1px;
+  box-shadow: 0 0 12px rgba(255, 30, 86, 0.5);
 }
 
+/* Susunan Vertikal Terpusat Profil & Avatar Stage */
 html[data-theme="sefirah"] .profile-main {
   position: relative;
   z-index: 1;
@@ -126,23 +147,20 @@ html[data-theme="sefirah"] .profile-main {
   align-items: center;
   text-align: center;
   gap: 14px;
-  margin-top: 0;
-  padding: 0;
+  margin-top: 6px;
 }
 
-/* Avatar Stage + Orbital Rings ala Sefirah Castle */
 html[data-theme="sefirah"] .avatar-wrap {
   position: relative;
-  width: 146px;
-  height: 146px;
-  padding: 0;
+  width: 152px;
+  height: 152px;
+  margin: 8px auto 6px;
   border-radius: 50%;
-  background: transparent;
   border: 3px solid #ff1e56;
   box-shadow:
     0 0 25px rgba(255, 30, 86, 0.55),
     0 0 45px rgba(168, 85, 247, 0.35);
-  margin: 6px 0 4px;
+  overflow: visible;
 }
 
 html[data-theme="sefirah"] .avatar-wrap::before {
@@ -151,7 +169,7 @@ html[data-theme="sefirah"] .avatar-wrap::before {
   inset: -12px;
   border-radius: 50%;
   border: 1px dashed rgba(168, 85, 247, 0.55);
-  animation: sefirahSpin 24s linear infinite;
+  animation: sefirahSpinSlow 24s linear infinite;
   pointer-events: none;
 }
 
@@ -163,12 +181,17 @@ html[data-theme="sefirah"] .avatar-wrap::after {
   border: 1.5px solid transparent;
   border-top-color: #ff1e56;
   border-bottom-color: #a855f7;
-  animation: sefirahSpinRev 12s linear infinite;
+  animation: sefirahSpinReverse 12s linear infinite;
   pointer-events: none;
 }
 
-@keyframes sefirahSpin { to { transform: rotate(360deg); } }
-@keyframes sefirahSpinRev { to { transform: rotate(-360deg); } }
+@keyframes sefirahSpinSlow {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes sefirahSpinReverse {
+  to { transform: rotate(-360deg); }
+}
 
 html[data-theme="sefirah"] #avatarImage.avatar {
   width: 100%;
@@ -180,112 +203,138 @@ html[data-theme="sefirah"] #avatarImage.avatar {
 
 html[data-theme="sefirah"] .online-dot {
   position: absolute;
-  right: 8px;
-  bottom: 8px;
+  bottom: 4px;
+  right: 4px;
   width: 14px;
   height: 14px;
   border-radius: 50%;
   background: #ff1e56;
   border: 2px solid #120d1d;
-  box-shadow: 0 0 10px #ff1e56;
+  box-shadow: 0 0 8px #ff1e56;
   z-index: 2;
 }
 
-/* Judul Editorial & Handle */
+/* Identitas (.identity-center) */
 html[data-theme="sefirah"] .profile-heading {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   width: 100%;
+  gap: 2px;
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   padding: 0 !important;
-  gap: 4px;
 }
 
 html[data-theme="sefirah"] .name-line {
+  display: flex;
   justify-content: center;
+  align-items: center;
   width: 100%;
 }
 
 html[data-theme="sefirah"] #communityName {
   font-family: 'Cinzel', serif;
   font-weight: 800;
-  font-size: clamp(1.55rem, 5vw, 2.1rem);
-  letter-spacing: 1.5px;
+  font-size: clamp(1.6rem, 5.5vw, 2.25rem);
+  letter-spacing: 2px;
+  line-height: 1.05;
   background: linear-gradient(90deg, #ff1e56 0%, #ff4d79 45%, #c084fc 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 12px rgba(255, 30, 86, 0.35));
+  filter: drop-shadow(0 0 14px rgba(255, 30, 86, 0.35));
 }
 
-html[data-theme="sefirah"] #communityHandle {
+html[data-theme="sefirah"] #communityHandle.handle {
+  display: block;
+  width: 100%;
+  text-align: center;
   font-family: 'Playfair Display', serif;
   font-style: italic;
-  font-size: 0.98rem;
+  font-size: 1.05rem;
   color: #c084fc;
-  text-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
-  text-align: center;
+  text-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
 }
 
-/* Bio Box bergaya Sefirah */
+/* Bio Box (.bio-box) */
 html[data-theme="sefirah"] #communityBio.bio {
   width: 100%;
   text-align: left;
-  background: rgba(12, 9, 20, 0.72);
+  background: rgba(12, 9, 20, 0.68);
   border-left: 3px solid #ff1e56;
-  padding: 11px 14px;
+  padding: 10px 14px;
   border-radius: 0 8px 8px 0;
-  color: #dcd4ec;
   font-size: 0.86rem;
+  color: #dcd4ec;
   line-height: 1.55;
 }
 
-/* Tombol Aksi Profil */
+/* Tombol Utama & Sekunder (.btn-neon-primary & .btn-cyber-sm) */
 html[data-theme="sefirah"] .profile-buttons {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
-  padding-top: 12px;
-  border-top: 1px solid rgba(168, 85, 247, 0.18);
+  padding-top: 14px;
+  border-top: 1px solid rgba(168, 85, 247, 0.16);
 }
 
 html[data-theme="sefirah"] #viewKontenBtn.primary-btn {
   background: linear-gradient(135deg, #ff1e56, #9333ea);
   color: #fff;
   border: none;
+  padding: 10px 20px;
   border-radius: 8px;
   font-weight: 700;
+  font-size: 0.84rem;
+  letter-spacing: 0.3px;
   box-shadow: 0 0 18px rgba(255, 30, 86, 0.4);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+html[data-theme="sefirah"] #viewKontenBtn.primary-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 26px rgba(255, 30, 86, 0.65), 0 0 16px rgba(168, 85, 247, 0.5);
 }
 
 html[data-theme="sefirah"] #shareButton.secondary-btn {
   background: rgba(168, 85, 247, 0.12);
   border: 1px solid rgba(168, 85, 247, 0.45);
   color: #c084fc;
+  padding: 10px 16px;
   border-radius: 8px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
+  transition: all 0.2s ease;
 }
 
-/* Tab Navigasi Full-Width menyatu dalam bingkai (cyber-tabs) */
+html[data-theme="sefirah"] #shareButton.secondary-btn:hover {
+  background: rgba(168, 85, 247, 0.28);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+  color: #fff;
+}
+
+/* Navigasi Tab (.cyber-tabs & .tab-btn) */
 html[data-theme="sefirah"] .tabs {
   margin: 0;
   border-radius: 0;
   border-inline: none;
-  border-top: 1px solid rgba(168, 85, 247, 0.25);
-  border-bottom: 1px solid rgba(168, 85, 247, 0.25);
-  background: rgba(11, 8, 19, 0.88);
+  border-top: 1px solid rgba(168, 85, 247, 0.22);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.22);
+  background: rgba(11, 8, 19, 0.85);
 }
 
 html[data-theme="sefirah"] .tab {
   color: #9b8fb5;
   font-weight: 700;
-  padding: 13px 8px;
+  font-size: 0.86rem;
+  padding: 13px 10px;
   position: relative;
+  transition: color 0.2s;
 }
 
 html[data-theme="sefirah"] .tab.active {
@@ -294,7 +343,7 @@ html[data-theme="sefirah"] .tab.active {
 }
 
 html[data-theme="sefirah"] .tab.active::after {
-  content: "";
+  content: '';
   position: absolute;
   bottom: 0;
   left: 18%;
@@ -305,7 +354,7 @@ html[data-theme="sefirah"] .tab.active::after {
   box-shadow: 0 0 10px #ff1e56;
 }
 
-/* Isi Konten di dalam Bingkai Utama */
+/* Panel Konten (.tab-panel) & Kartu (.member-card) */
 html[data-theme="sefirah"] .content-section {
   margin: 0;
   padding: 18px 20px 26px;
@@ -313,25 +362,25 @@ html[data-theme="sefirah"] .content-section {
 
 html[data-theme="sefirah"] .eyebrow {
   font-family: 'JetBrains Mono', monospace;
-  color: #ff1e56;
-  letter-spacing: 1.2px;
+  color: #c084fc;
+  font-weight: 700;
 }
 
 html[data-theme="sefirah"] .post-card,
 html[data-theme="sefirah"] .about-card {
-  background: rgba(22, 16, 36, 0.76);
-  border: 1px solid rgba(168, 85, 247, 0.24);
+  background: rgba(22, 16, 36, 0.72);
+  border: 1px solid rgba(168, 85, 247, 0.2);
   border-radius: 12px;
   transition: all 0.2s ease;
 }
 
 html[data-theme="sefirah"] .post-card:hover {
-  background: rgba(34, 22, 52, 0.9);
+  background: rgba(34, 22, 52, 0.88);
   border-color: rgba(255, 30, 86, 0.45);
 }
 
 html[data-theme="sefirah"] .mini-avatar {
-  background: rgba(255, 30, 86, 0.18);
+  background: rgba(255, 30, 86, 0.16);
   border: 1.5px solid #a855f7;
   color: #ff7597;
   font-family: 'JetBrains Mono', monospace;
@@ -339,14 +388,32 @@ html[data-theme="sefirah"] .mini-avatar {
 
 html[data-theme="sefirah"] .search-box {
   background: rgba(12, 9, 20, 0.9);
-  border: 1px solid rgba(168, 85, 247, 0.35);
+  border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 8px;
 }
 
-/* Bottom Navigation */
+html[data-theme="sefirah"] .home-modal-card {
+  background: #110c1e;
+  border: 1px solid #a855f7;
+  box-shadow: 0 0 36px rgba(255, 30, 86, 0.3);
+  border-radius: 14px;
+}
+
+/* Toast (.cyber-toast) */
+html[data-theme="sefirah"] #toast.toast {
+  background: #140d24;
+  border: 1px solid #ff1e56;
+  color: #fff;
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.76rem;
+  box-shadow: 0 0 20px rgba(255, 30, 86, 0.45);
+}
+
+/* Bottom Nav */
 html[data-theme="sefirah"] .bottom-nav {
-  background: rgba(10, 8, 18, 0.94);
-  border-top: 1px solid rgba(168, 85, 247, 0.28);
+  background: rgba(10, 8, 18, 0.9);
+  border-top: 1px solid rgba(168, 85, 247, 0.25);
   backdrop-filter: blur(16px);
 }
 
@@ -359,6 +426,7 @@ html[data-theme="sefirah"] .create-button {
   box-shadow: 0 0 18px rgba(255, 30, 86, 0.5);
 }
 
+/* Responsif Layar HP (<= 540px) seperti @media di CSS Sefirah Castle */
 @media (max-width: 540px) {
   html[data-theme="sefirah"] .topbar {
     margin: 0;
